@@ -7,6 +7,7 @@ import './watch.js';
 import './course.js';
 import './lock.js';
 import './integrations/ai/index.js';
+import './integrations/hr-control/index.js';
 
 function startServiceWorker() {
     if('serviceWorker' in navigator) {

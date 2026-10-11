@@ -305,6 +305,15 @@ class CadenceTarget extends Target {
     parse(value) { return parseInt(value); }
 }
 
+class HeartRateTarget extends Target {
+    postInit(args = {}) {
+        this.min = existance(args.min, 0);
+        this.max = existance(args.max, 220);
+        this.step = existance(args.step, 1);
+    }
+    parse(value) { return parseInt(value); }
+}
+
 class Mode extends Model {
     postInit(args) {
         this.state = this.defaultValue();
@@ -998,6 +1007,7 @@ function Session(args = {}) {
             powerTarget: db.powerTarget,
             resistanceTarget: db.resistanceTarget,
             slopeTarget: db.slopeTarget,
+            heartRateTarget: db.heartRateTarget,
 
             // sources: db.sources,
 
@@ -1592,6 +1602,7 @@ const powerTarget = new PowerTarget({prop: 'powerTarget'});
 const resistanceTarget = new ResistanceTarget({prop: 'resistanceTarget'});
 const slopeTarget = new SlopeTarget({prop: 'slopeTarget'});
 const cadenceTarget = new CadenceTarget({prop: 'cadenceTarget'});
+const heartRateTarget = new HeartRateTarget({prop: 'heartRateTarget'});
 const mode = new Mode({prop: 'mode'});
 const page = new Page({prop: 'page'});
 
@@ -1642,6 +1653,7 @@ let models = {
     resistanceTarget,
     slopeTarget,
     cadenceTarget,
+    heartRateTarget,
 
     mode,
     page,

@@ -270,7 +270,7 @@ function Controllable() {
 
     function onPowerTarget(power) {
         console.log(power);
-        if(device.isConnected() && (equals(_mode, 'erg'))) {
+        if(device.isConnected() && (equals(_mode, 'erg') || equals(_mode, 'heartRate'))) {
             setPowerTarget(power);
         }
     }

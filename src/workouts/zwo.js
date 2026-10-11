@@ -71,11 +71,21 @@ function attributesToStep(args = {}) {
     }, {});
 }
 
+// step keys are lower case (power, cadence, slope), except camelCase targets
+const stepKeys = {
+    heartrate: 'heartRate',
+};
+
+function toStepKey(name) {
+    const key = name.toLowerCase();
+    return existance(stepKeys[key], key);
+}
+
 function Step(element) {
     const spec = {
         element: element,
         filter:  (key) => !equals(key, 'element'),
-        toName:  (key) => key.toLowerCase(),
+        toName:  (key) => toStepKey(key),
     };
 
     return attributesToStep(spec);
@@ -85,7 +95,7 @@ function OnStep(element) {
     const spec = {
         element:    element,
         filter: (key) => key.startsWith('On') || equals(key, 'Cadence'),
-        toName: (key) => key.replace(/On/g,'').toLocaleLowerCase(),
+        toName: (key) => toStepKey(key.replace(/On/g,'')),
     };
 
     return attributesToStep(spec);
@@ -95,7 +105,7 @@ function OffStep(element) {
     const spec = {
         element:    element,
         filter: (key) => key.startsWith('Off') || key.endsWith('Resting'),
-        toName: (key) => key.replace(/On|Off|Resting/g,'').toLocaleLowerCase(),
+        toName: (key) => toStepKey(key.replace(/On|Off|Resting/g,'')),
     };
 
     return attributesToStep(spec);
@@ -194,6 +204,7 @@ function Element(args = {}) {
         if(exists(step.power)) res.Power = step.power;
         if(exists(step.cadence)) res.Cadence = step.cadence;
         if(exists(step.slope)) res.Slope = step.slope;
+        if(exists(step.heartRate)) res.HeartRate = step.heartRate;
 
         return res;
     }
@@ -498,6 +509,10 @@ function SteadyState(args = {}) {
             element.PowerHigh = undefined;
             step = Step(element);
         }
+        else if(exists(element.HeartRate)) {
+            // heart rate target step, power is controlled in hr mode
+            step = Step(element);
+        }
         else {
             element.Power = 0;
             element.Slope = 0;
@@ -731,6 +746,10 @@ const Attrs = {
     SlopeHigh: Attribute({name: 'SlopeHigh', decode: parseFloat}),
 
     Distance: Attribute({name: 'Distance', decode: parseInt}),
+
+    HeartRate:    Attribute({name: 'HeartRate', decode: parseInt}),
+    OnHeartRate:  Attribute({name: 'OnHeartRate', decode: parseInt}),
+    OffHeartRate: Attribute({name: 'OffHeartRate', decode: parseInt}),
 
     Sim:   Attribute({name: 'Sim', decode: decodeSim, encode: encodeSim}),
     Track: Attribute({name: 'Track', decode: decodeSim, encode: encodeSim}),

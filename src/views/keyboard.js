@@ -9,6 +9,7 @@ function Keyboard() {
     const isKeyR     = (code) => code === 'KeyR';
     const isKeyS     = (code) => code === 'KeyS';
     const isKeyL     = (code) => code === 'KeyL';
+    const isKeyH     = (code) => code === 'KeyH';
     const isKeySpace = (code) => code === 'Space';
 
     window.addEventListener('keydown', onKeydown.bind(this));
@@ -46,6 +47,9 @@ function Keyboard() {
         if(isKeyL(code)) {
             xf.dispatch('key:l');
         }
+        if(isKeyH(code)) {
+            xf.dispatch('key:h');
+        }
         if(isKeySpace(code)) {
             e.preventDefault();
             xf.dispatch('key:space');
@@ -72,6 +76,9 @@ function KeyboardControls() {
         if(mode === ControlMode.sim) {
             xf.dispatch('ui:slope-target-inc');
         }
+        if(mode === ControlMode.heartRate) {
+            xf.dispatch('ui:heart-rate-target-inc');
+        }
     });
     xf.sub('key:down', e => {
         if(mode === ControlMode.erg) {
@@ -82,6 +89,9 @@ function KeyboardControls() {
         }
         if(mode === ControlMode.sim) {
             xf.dispatch('ui:slope-target-dec');
+        }
+        if(mode === ControlMode.heartRate) {
+            xf.dispatch('ui:heart-rate-target-dec');
         }
     });
 
@@ -94,6 +104,9 @@ function KeyboardControls() {
     });
     xf.sub('key:s', e => {
         xf.dispatch('ui:mode-set', ControlMode.sim);
+    });
+    xf.sub('key:h', e => {
+        xf.dispatch('ui:mode-set', ControlMode.heartRate);
     });
 
     // Watch

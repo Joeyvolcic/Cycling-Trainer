@@ -34,3 +34,8 @@ Shared conventions so features built in parallel slot together. Keep this file c
   loads an entry; `plans:today {entry, workout}` / `plans:active` are dispatched; a saved activity marks the entry `done`.
 - Wellness/recovery: `src/integrations/ai/wellness.js` exports `async getWellness(date)` -> `{sleepScore?, sleepHours?, hrv?, restingHR?, readiness?, source}` (intervals.icu wellness first).
 - Ride summary for analysis: `src/integrations/analysis/summary.js` exports `summarizeActivity(activity)` -> plain JSON (duration, avg/NP power, HR stats, time-in-zone, interval compliance).
+- Heart-rate control (`src/integrations/hr-control/`): `ControlMode.heartRate` (`'heartRate'`) is a software loop on top of ERG.
+  Trainer code must use `isPowerTargetMode(mode)` from `src/ble/enums.js` (true for `erg` and `heartRate`) before sending power targets.
+  State: `db.heartRateTarget` (bpm), events `ui:heart-rate-target-set|inc|dec`; status broadcast as `hr-control:status`
+  `{active, status, power, target, smoothedHr, message}`. Workout steps may carry `heartRate` (bpm), parsed from zwo
+  `HeartRate` / `OnHeartRate` / `OffHeartRate` attributes. Settings in `localStorage['hr-control:*']`.

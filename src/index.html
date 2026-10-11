@@ -108,10 +108,12 @@
                                 <z-stack data-key="heartRateZStack">
                                     <z-stack-item class="active">
                                         <h2 class="data-tile--heading">Heart Rate</h2>
-                                        <div class="data-tile--value-cont">
+                                        <heart-rate-group class="data-tile--value-cont">
                                             <heart-rate-value id="heart-rate-value"
                                                             class="data-tile--value">--</heart-rate-value>
-                                        </div>
+                                            <span class="heart-rate-target data-tile-target--value"
+                                                  title="Target heart rate"></span>
+                                        </heart-rate-group>
                                     </z-stack-item>
                                     <z-stack-item>
                                         <h2 class="data-tile--heading">Heart Rate Lap</h2>
@@ -316,6 +318,11 @@
                                                 prop="mode"
                                                 effect="mode-set"
                                                  param="sim">Slope</tab-btn>
+                                        <tab-btn id="hr-mode-btn"
+                                                class="mode"
+                                                prop="mode"
+                                                effect="mode-set"
+                                                param="heartRate">HR</tab-btn>
                                         <mode-lock-toggle>
                                             <svg class="mode-lock--toggle--icon" width="24" height="24">
                                                 <use href="#icon--lock--open"/>
@@ -370,6 +377,31 @@
                                             </div>
                                         </slope-target-control>
                                     </div> <!-- end slope mode -->
+                                    <div id="hr-mode-controls" class="tab mode-controls" tab="heartRate">
+                                        <hr-target-control id="hr-control-btn" class="number-btn">
+                                            <div class="number-input">
+                                                <button id="hr-target-dec"
+                                                        class="hr-target--dec number-input--dec number-input--btn btn"
+                                                        aria-label="Decrease target heart rate">-</button>
+                                                <input id="hr-target-input"
+                                                       class="hr-target--input number-input--value input"
+                                                       type="number"
+                                                       inputmode="numeric"
+                                                       min="60"
+                                                       max="220"
+                                                       placeholder="bpm"
+                                                       aria-label="Target heart rate (bpm)"
+                                                       autocomplete="off" />
+                                                <button id="hr-target-inc"
+                                                        class="hr-target--inc number-input--inc number-input--btn btn"
+                                                        aria-label="Increase target heart rate">+</button>
+                                            </div>
+                                            <div class="hr-control--status" role="status" aria-live="polite">
+                                                <span class="hr-control--power"></span>
+                                                <span class="hr-control--message"></span>
+                                            </div>
+                                        </hr-target-control>
+                                    </div> <!-- end heart rate mode -->
                                 </tab-group>
                             </div> <!-- end targets--cont -->
                         </div> <!-- end targets -->
@@ -953,6 +985,25 @@
                                             class="settings-switch-bnt">Metric</measurement-value>
                         </button>
                     </div> <!-- end settings btn row -->
+
+                    <section id="hr-control-settings">
+                        <hr-control-settings class="hr-settings">
+                            <h2 class="hr-settings--heading">Heart Rate Mode</h2>
+                            <label class="hr-settings--row">
+                                <span class="hr-settings--label">Max power (% FTP)</span>
+                                <input class="hr-settings--max-power hr-settings--input"
+                                       type="number" inputmode="numeric"
+                                       min="50" max="200" step="5" />
+                            </label>
+                            <label class="hr-settings--row">
+                                <span class="hr-settings--label">Max heart rate (bpm, empty = off)</span>
+                                <input class="hr-settings--max-hr hr-settings--input"
+                                       type="number" inputmode="numeric"
+                                       min="100" max="230" placeholder="off" />
+                            </label>
+                            <button class="hr-settings--save settings-tile--btn">Save</button>
+                        </hr-control-settings>
+                    </section>
 
                     <!-- protocol-settings -->
                     <!-- <div class="protocol-settings settings-btn-row">

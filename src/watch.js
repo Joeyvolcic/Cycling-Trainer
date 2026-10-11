@@ -411,6 +411,7 @@ xf.reg('watch:stepIndex',     (index, db) => {
     const slopeTarget    = db.workout.intervals[intervalIndex].steps[index].slope;
     const cadenceTarget  = db.workout.intervals[intervalIndex].steps[index].cadence;
     const distanceTarget = db.workout.intervals[intervalIndex].steps[index].distance;
+    const heartRateTarget = db.workout.intervals[intervalIndex].steps[index].heartRate;
 
     if(exists(slopeTarget)) {
         xf.dispatch('ui:slope-target-set', slopeTarget);
@@ -426,7 +427,17 @@ xf.reg('watch:stepIndex',     (index, db) => {
     } else {
         xf.dispatch('ui:cadence-target-set', 0);
     }
-    if(exists(powerTarget)) {
+    if(exists(heartRateTarget) && !exists(slopeTarget)) {
+        // heart rate step: power is driven by src/integrations/hr-control,
+        // an optional power value only seeds the controller
+        if(exists(powerTarget) && !equals(db.mode, ControlMode.heartRate)) {
+            xf.dispatch('ui:power-target-set', models.ftp.toAbsolute(powerTarget, db.ftp));
+        }
+        xf.dispatch('ui:heart-rate-target-set', heartRateTarget);
+        if(!equals(db.mode, ControlMode.heartRate)) {
+            xf.dispatch('ui:mode-set', ControlMode.heartRate);
+        }
+    } else if(exists(powerTarget)) {
         xf.dispatch('ui:power-target-set', models.ftp.toAbsolute(powerTarget, db.ftp));
         if(!exists(slopeTarget) && !equals(db.mode, ControlMode.erg)) {
             xf.dispatch('ui:mode-set', ControlMode.erg);
