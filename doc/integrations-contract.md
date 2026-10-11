@@ -49,3 +49,6 @@ Shared conventions so features built in parallel slot together. Keep this file c
   Panel `x-quiz-panel` (registered with `element: 'x-quiz-panel'`, a tag name), manager `x-quiz-manager` in `#quiz-settings`, `x-quiz-ride-summary` in the ride report.
   Reads `db:watchStatus`, `db:powerTarget`, `db:power3s`, `db:ftp`. Dispatches `quiz:changed`, `quiz:settings`, `quiz:state`,
   and `quiz:ride-summary` -> `{reviewed, correct, start, end}` on ride stop (usable by analysis).
+- Media (`src/integrations/media/`, see `doc/media.md`): panel id `media`, keys `media:*` in localStorage, own IndexedDB
+  database `flux-media` (does not touch `src/db.js`). Emits `media:segment` `{index, type, playlist}` on workout interval
+  changes, with `type` in `warmup|endurance|threshold|vo2|recovery` (pure helpers in `media/intensity.js`).

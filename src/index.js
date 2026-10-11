@@ -11,6 +11,7 @@ import './integrations/hr-control/index.js';
 import './integrations/calendar/calendar.js';
 import './integrations/calendar/settings-view.js';
 import './integrations/quiz/index.js';
+import './integrations/media/media.js';
 
 function startServiceWorker() {
     if('serviceWorker' in navigator) {
