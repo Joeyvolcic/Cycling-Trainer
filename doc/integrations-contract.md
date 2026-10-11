@@ -24,6 +24,10 @@ Shared conventions so features built in parallel slot together. Keep this file c
   - The active layout is on `<body data-layout="classic|banner|split|focus">` and announced via `xf` event `ui:layout`.
     In `classic` the dock sits below the full-screen data view (scroll down) and only appears once a panel is registered.
 - Settings for a feature go in a `<section id="<name>-settings">` inside the Settings page; keep edits to shared files (`index.html`, `models.js`, `flux.css`, `db.js`) minimal and additive to ease merging.
+  Each section sits in its own collapsible `<details class="integration-section" data-section="<name>">` under the
+  Settings page's "Integrations" heading (`#integrations-settings`); the `<summary>` is the heading, so don't render a
+  top-level heading of your own. `xf.dispatch('ui:settings:open', '<name>')` opens and scrolls to a section
+  (`src/integrations/ui/settings-sections.js`).
 - Persist secrets/tokens only in `localStorage` under `<name>:*` keys (no backend we control; `api.auuki.com` is upstream's).
 - Everything must work on iPad (touch targets >= 44px, no hover-only UI, no keyboard-only shortcuts).
 
@@ -47,14 +51,22 @@ Shared conventions so features built in parallel slot together. Keep this file c
   IDB `store` is at version 4 with stores `['session','workouts','activity','plans']`; any version bump now
   creates missing stores, so add yours to the list in `db.js` and bump the version.
   Today's entry is loaded as the workout on startup (local plan wins over intervals.icu); `ui:plans:ride {planId, entryId}`
-  loads an entry; `plans:today {entry, workout}` / `plans:active` are dispatched; a saved activity marks the entry `done`.
+  loads an entry; `plans:today {entry, workout}` / `plans:active` are dispatched; a saved activity marks the entry `done`
+  (also when the ridden workout is an adjusted copy with `meta.adjustedFrom` = the entry's workout id).
+  Startup precedence for the current workout (only `plans/today.js` and `models.planned.wod()` auto-load):
+  resumed ride > deep link (`app:deeplink`) > today's local plan entry > intervals.icu planned workout.
+  The quick-start card and the AI readiness panel only load a workout on user action (quick start uses `ui:plans:ride`).
 - Wellness/recovery: `src/integrations/ai/wellness.js` exports `async getWellness(date)` -> `{sleepScore?, sleepHours?, hrv?, restingHR?, readiness?, source}` (intervals.icu wellness first).
 - Ride summary for analysis: `src/integrations/analysis/summary.js` exports `summarizeActivity(activity)` -> plain JSON (duration, avg/NP power, HR stats, time-in-zone, interval compliance).
 - Heart-rate control (`src/integrations/hr-control/`): `ControlMode.heartRate` (`'heartRate'`) is a software loop on top of ERG.
   Trainer code must use `isPowerTargetMode(mode)` from `src/ble/enums.js` (true for `erg` and `heartRate`) before sending power targets.
   State: `db.heartRateTarget` (bpm), events `ui:heart-rate-target-set|inc|dec`; status broadcast as `hr-control:status`
-  `{active, status, power, target, smoothedHr, message}`. Workout steps may carry `heartRate` (bpm), parsed from zwo
-  `HeartRate` / `OnHeartRate` / `OffHeartRate` attributes. Settings in `localStorage['hr-control:*']`.
+  `{active, status, power, target, smoothedHr, message}`. Workout steps may carry `heartRate`, parsed from zwo
+  `HeartRate` / `OnHeartRate` / `OffHeartRate` attributes, and as linear ramps on `Warmup` / `Ramp` / `Cooldown` via
+  `HeartRateLow` (start) / `HeartRateHigh` (end). A value <= 2 is a fraction of LTHR, > 2 is bpm; it is resolved to bpm
+  when the step starts (`toBpm()` in `hr-control/targets.js`). LTHR / max HR are the analysis settings
+  (`analysis:lthr`, `analysis:max-hr`, `athlete()` in `analysis/settings.js`), the single source of truth; changes
+  dispatch `analysis:settings`. Other HR control settings in `localStorage['hr-control:*']`.
 - Calendar: `src/integrations/calendar/calendar.js` exports
   `async scheduleEntries(entries, prefs?, options?)` -> `[{entryId, date, time, start, end, shiftedDays, hard, warnings, reason?}]`
   (pure core in `scheduler.js`; uses Google free/busy when connected), `syncAll()`, `exportIcs()`.
@@ -68,7 +80,7 @@ Shared conventions so features built in parallel slot together. Keep this file c
 - Media (`src/integrations/media/`, see `doc/media.md`): panel id `media`, keys `media:*` in localStorage, own IndexedDB
   database `flux-media` (does not touch `src/db.js`). Emits `media:segment` `{index, type, playlist}` on workout interval
   changes, with `type` in `warmup|endurance|threshold|vo2|recovery` (pure helpers in `media/intensity.js`).
-  Also exports `toStreams(activity)`. Saved activities get `record.analysis = {input, summary, feedback}` in the IDB `activity` store
-  (feedback from the post-ride "Coach feedback"). Upload retry queue lives in its own IDB database `flux-analysis` (store `uploads`).
+  Also exports `toStreams(activity)`. Saved activities get `record.analysis = {input, summary, feedback, quiz}` in the IDB `activity` store
+  (feedback from the post-ride "Coach feedback"; `quiz` = the `quiz:ride-summary` of that ride when cards were reviewed, else null). Upload retry queue lives in its own IDB database `flux-analysis` (store `uploads`).
   Events: `analysis:report` / `analysis:report:open` (open the post-ride report for an activity id), `analysis:upload` (queue job changed),
   `analysis:upload:request` `{id, service}`. Credentials: `analysis:intervals-athlete-id`, `analysis:intervals-api-key`, `analysis:strava-*`.
