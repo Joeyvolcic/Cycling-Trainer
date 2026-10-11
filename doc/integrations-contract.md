@@ -26,3 +26,7 @@ Shared conventions so features built in parallel slot together. Keep this file c
   Dispatches `xf` event `plans:changed`.
 - Wellness/recovery: `src/integrations/ai/wellness.js` exports `async getWellness(date)` -> `{sleepScore?, sleepHours?, hrv?, restingHR?, readiness?, source}` (intervals.icu wellness first).
 - Ride summary for analysis: `src/integrations/analysis/summary.js` exports `summarizeActivity(activity)` -> plain JSON (duration, avg/NP power, HR stats, time-in-zone, interval compliance).
+  Also exports `toStreams(activity)`. Saved activities get `record.analysis = {input, summary, feedback}` in the IDB `activity` store
+  (feedback from the post-ride "Coach feedback"). Upload retry queue lives in its own IDB database `flux-analysis` (store `uploads`).
+  Events: `analysis:report` / `analysis:report:open` (open the post-ride report for an activity id), `analysis:upload` (queue job changed),
+  `analysis:upload:request` `{id, service}`. Credentials: `analysis:intervals-athlete-id`, `analysis:intervals-api-key`, `analysis:strava-*`.

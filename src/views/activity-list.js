@@ -127,6 +127,12 @@ class ActivityList extends HTMLElement {
                                             <use href="#icon--image" />
                                         </svg>
                                     </view-action>
+                                    <view-action
+                                        class="activity--action action--report"
+                                        action=":report"
+                                        topic=":activity:${this.id(data)}">
+                                        <span class="activity--report">Report</span>
+                                    </view-action>
                                 </div> <!-- end activity--actions -->
                             </div> <!-- end activity--info--full -->
                         </div> <!-- end activity--info -->
@@ -195,20 +201,34 @@ class ActivityItem extends HTMLElement {
             models.activity.download(this.id);
             return;
         }
+        // uploads go through the analysis retry queue (src/integrations/analysis)
+        if(action === ':report') {
+            xf.dispatch('analysis:report:open', this.id);
+            return;
+        }
         if(action === ':strava:upload') {
-            models.activity.upload('strava', this.id);
+            xf.dispatch('analysis:upload:request', {id: this.id, service: 'strava'});
             this.onLoading(this.$indicatorStrava);
             return;
         }
         if(action === ':intervals:upload') {
-            models.activity.upload('intervals', this.id);
+            xf.dispatch('analysis:upload:request', {id: this.id, service: 'intervals'});
             this.onLoading(this.$indicatorIntervals);
             return;
         }
         if(action === ':tp:upload') {
-            models.activity.upload('trainingPeaks', this.id);
+            xf.dispatch('analysis:upload:request', {id: this.id, service: 'trainingPeaks'});
             this.onLoading(this.$indicatorTP);
             return;
+        }
+        if(action === ':strava:upload:loading') {
+            this.onLoading(this.$indicatorStrava);
+        }
+        if(action === ':intervals:upload:loading') {
+            this.onLoading(this.$indicatorIntervals);
+        }
+        if(action === ':tp:upload:loading' && this.$indicatorTP) {
+            this.onLoading(this.$indicatorTP);
         }
 
         if(action === ':strava:upload:success') {
@@ -223,10 +243,10 @@ class ActivityItem extends HTMLElement {
         if(action === ':intervals:upload:fail') {
             this.onFail(this.$indicatorIntervals);
         }
-        if(action === ':tp:upload:success') {
+        if(action === ':tp:upload:success' && this.$indicatorTP) {
             this.onSuccess(this.$indicatorTP);
         }
-        if(action === ':tp:upload:fail') {
+        if(action === ':tp:upload:fail' && this.$indicatorTP) {
             this.onFail(this.$indicatorTP);
         }
     }
