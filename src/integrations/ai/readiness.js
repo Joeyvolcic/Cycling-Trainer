@@ -3,13 +3,14 @@
 import { xf } from '../../functions.js';
 import { models } from '../../models/models.js';
 import { zwo } from '../../workouts/zwo.js';
-import { entriesForDate, updateEntry } from '../plans/plans.js';
+import { entriesForDate, updateEntry, resolveWorkout } from '../plans/plans.js';
 import { complete, isConfigured, getModel } from './claude.js';
 import { getWellness, getRecentLoad, getIntervalsPlanned, isoDate } from './wellness.js';
 import {
     DECISION_SCHEMA, SYSTEM_PROMPT, buildPrompt, summarizeWorkout,
     sanitizeDecision, applyDecision, workoutMetrics,
 } from './adjust.js';
+import { adjustedEntryPatch } from './planner-core.js';
 
 const LOG_STORAGE = 'ai:readiness-log';
 const LOG_CAPACITY = 60;
@@ -26,10 +27,9 @@ xf.sub('db:workout', (x) => { state.workout = x; });
 xf.sub('db:workouts', (x) => { state.workouts = x ?? []; });
 xf.sub('db:activity', (x) => { state.activity = x ?? []; });
 
+// library by id, then by name, then the entry's own snapshot (plans.resolveWorkout)
 function findInLibrary(entry) {
-    const lib = state.workouts ?? [];
-    return lib.find((w) => w.id === entry.workoutId) ??
-           lib.find((w) => w.meta?.name && w.meta.name === entry.workoutName);
+    return resolveWorkout(entry, state.workouts ?? []);
 }
 
 // -> [{key, label, source, workout, entry?}]
@@ -162,23 +162,44 @@ function logDecision(result, outcome) {
     return entry;
 }
 
-// Rider accepted: load the adjusted copy as the current workout (the original
-// stays untouched in the library / plan) and annotate the plan entry.
-async function acceptResult(result, candidate) {
+// Rider accepted: the adjusted copy is saved to the library as a custom
+// workout (meta.adjustedFrom = original id), linked from the plan entry
+// (workoutId + snapshot + entry.adjustedFrom) and loaded as the current
+// workout, so the ride is matched to the entry and post-ride analysis compares
+// against what was actually prescribed. The original stays untouched.
+async function acceptResult(result, candidate, {saveToLibrary = true} = {}) {
     const d = result.decision;
-    if(result.adjusted) {
-        xf.dispatch('workout', result.adjusted);
+    const entry = candidate?.entry;
+    const changed = !!result.adjusted && d.decision !== 'keep';
+    if(changed && saveToLibrary) {
+        try {
+            xf.dispatch('ui:workout:save', result.adjusted);
+        } catch(e) {
+            console.warn(':ai :readiness :library-save', e);
+        }
     }
-    if(candidate?.entry?.planId && candidate.entry.id) {
+    let linked = false;
+    if(entry?.planId && entry.id) {
         const note = `AI readiness: ${d.decision.replace(/_/g, ' ')}` +
               (d.decision === 'rest' ? '' : ` (${result.after?.minutes ?? '?'} min)`) +
               ` — ${d.rationale}`;
-        const patch = {notes: [candidate.entry.notes, note].filter(Boolean).join('\n')};
+        const patch = changed ?
+              adjustedEntryPatch(entry, result.adjusted, {by: 'readiness', note, decision: d.decision}) :
+              {notes: [entry.notes, note].filter(Boolean).join('\n')};
         if(d.decision === 'rest') patch.status = 'skipped';
         try {
-            await updateEntry(candidate.entry.planId, candidate.entry.id, patch);
+            await updateEntry(entry.planId, entry.id, patch);
+            linked = changed;
         } catch(e) {
             console.warn(':ai :readiness :plan-update', e);
+        }
+    }
+    if(result.adjusted) {
+        if(linked) {
+            // loads the entry's (now adjusted) workout and marks the entry active
+            xf.dispatch('ui:plans:ride', {planId: entry.planId, entryId: entry.id});
+        } else {
+            xf.dispatch('workout', changed ? result.adjusted : result.original);
         }
     }
     return logDecision(result, 'accepted');
