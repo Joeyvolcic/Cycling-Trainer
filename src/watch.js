@@ -41,7 +41,7 @@ class Watch {
         xf.sub('db:elapsed',       elapsed => { self.elapsed       = elapsed; });
         xf.sub('db:lapTime',          time => { self.lapTime       = time; });
         xf.sub('db:stepTime',         time => { self.stepTime      = time; });
-        xf.sub('db:intervalDuration', time => { self.lapDuration   = time; });
+        xf.sub('db:intervalDuration', time => { self.intervalDuration = time; });
         xf.sub('db:stepDuration',     time => { self.stepDuration  = time; });
         xf.sub('db:intervalIndex',   index => { self.intervalIndex = index; });
         xf.sub('db:stepIndex',       index => { self.stepIndex     = index; });
@@ -399,7 +399,7 @@ class Watch {
 }
 
 // These regs have access to the global db state and can mutate it
-xf.reg('watch:lapDuration',    (time, db) => db.intervalDuration = time);
+xf.reg('watch:intervalDuration', (time, db) => db.intervalDuration = time);
 xf.reg('watch:stepDuration',   (time, db) => db.stepDuration     = time);
 xf.reg('watch:lapTime',        (time, db) => db.lapTime          = time);
 xf.reg('watch:stepTime',       (time, db) => db.stepTime         = time);
