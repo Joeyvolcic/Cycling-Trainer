@@ -6,6 +6,7 @@ import './ble/devices.js';
 import './watch.js';
 import './course.js';
 import './lock.js';
+import './integrations/ai/index.js';
 
 function startServiceWorker() {
     if('serviceWorker' in navigator) {
