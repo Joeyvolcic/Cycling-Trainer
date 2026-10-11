@@ -96,9 +96,7 @@ function FocusController() {
     xf.sub('db:watchStatus',      s => { state.running = (s === 'started'); update(); });
     xf.sub('db:workoutStatus',    s => { state.workout = (s === 'started'); update(); });
     xf.sub('db:lapTime',          t => { state.lapTime = t; update(); });
-    // NOTE: db.intervalDuration is never written (watch.js registers 'watch:lapDuration'
-    // but dispatches 'watch:intervalDuration'), so listen to the watch event directly.
-    xf.sub('watch:intervalDuration', t => { state.intervalDuration = t; update(); });
+    xf.sub('db:intervalDuration', t => { state.intervalDuration = t; update(); });
     xf.sub('ui:focus:pin', (seconds = 30) => {
         state.pinnedUntil = Date.now() + seconds * 1000;
         update();

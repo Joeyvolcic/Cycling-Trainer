@@ -408,6 +408,7 @@
                                             </div>
                                             <div class="hr-control--status" role="status" aria-live="polite">
                                                 <span class="hr-control--power"></span>
+                                                <span class="hr-control--lthr"></span>
                                                 <span class="hr-control--message"></span>
                                             </div>
                                         </hr-target-control>
@@ -1006,30 +1007,6 @@
                         </button>
                     </div> <!-- end settings btn row -->
 
-                    <section id="hr-control-settings">
-                        <hr-control-settings class="hr-settings">
-                            <h2 class="hr-settings--heading">Heart Rate Mode</h2>
-                            <label class="hr-settings--row">
-                                <span class="hr-settings--label">Max power (% FTP)</span>
-                                <input class="hr-settings--max-power hr-settings--input"
-                                       type="number" inputmode="numeric"
-                                       min="50" max="200" step="5" />
-                            </label>
-                            <label class="hr-settings--row">
-                                <span class="hr-settings--label">Max heart rate (bpm, empty = off)</span>
-                                <input class="hr-settings--max-hr hr-settings--input"
-                                       type="number" inputmode="numeric"
-                                       min="100" max="230" placeholder="off" />
-                            </label>
-                            <button class="hr-settings--save settings-tile--btn">Save</button>
-                        </hr-control-settings>
-                    </section>
-
-                    <!-- media integration (src/integrations/media) -->
-                    <section id="media-settings" class="settings-section">
-                        <x-media-settings></x-media-settings>
-                    </section>
-
                     <!-- protocol-settings -->
                     <!-- <div class="protocol-settings settings-btn-row">
                          <div class="protocol-btn flat-btn settings-switch-btn-cont">
@@ -1562,27 +1539,120 @@
                         </div>
                     </div> <!-- END Options -->
 
-                    <!-- ai coach settings -->
-                    <section id="ai-settings">
-                        <x-ai-settings></x-ai-settings>
-                        <x-ai-planner></x-ai-planner>
-                    </section>
+                    <!-- Integrations (src/integrations/*): one collapsible section per feature.
+                         Each module mounts into its <section id="<name>-settings">; closed
+                         <details> content stays in the DOM. Open state: src/integrations/ui/settings-sections.js -->
+                    <div id="integrations-settings" class="integrations-settings list--sub-section">
+                        <div class="list--row--outer">
+                            <div class="list--row--inner list--heading--cont">
+                                <h2 class="list--sub-heading">Integrations</h2>
+                            </div>
+                        </div>
 
-                    <!-- calendar integration -->
-                    <section id="calendar-settings">
-                        <calendar-settings></calendar-settings>
-                    </section>
+                        <details class="integration-section" data-section="hr-control">
+                            <summary class="integration-section--summary">
+                                <span class="integration-section--title">Heart rate mode</span>
+                                <span class="integration-section--hint">Max power, HR ceiling, LTHR</span>
+                            </summary>
+                            <div class="integration-section--body">
+                                <section id="hr-control-settings">
+                                    <hr-control-settings class="hr-settings">
+                                        <label class="hr-settings--row">
+                                            <span class="hr-settings--label">Max power (% FTP)</span>
+                                            <input class="hr-settings--max-power hr-settings--input"
+                                                   type="number" inputmode="numeric"
+                                                   min="50" max="200" step="5" />
+                                        </label>
+                                        <label class="hr-settings--row">
+                                            <span class="hr-settings--label">Max heart rate ceiling (bpm, empty = off)</span>
+                                            <input class="hr-settings--max-hr hr-settings--input"
+                                                   type="number" inputmode="numeric"
+                                                   min="100" max="230" placeholder="off" />
+                                        </label>
+                                        <label class="hr-settings--row">
+                                            <span class="hr-settings--label">LTHR (bpm) &mdash; workout HR targets &le; 2 are a fraction of it</span>
+                                            <input class="hr-settings--lthr hr-settings--input"
+                                                   type="number" inputmode="numeric"
+                                                   min="80" max="220" placeholder="--" />
+                                        </label>
+                                        <label class="hr-settings--row">
+                                            <span class="hr-settings--label">Max HR (bpm, for HR zones)</span>
+                                            <input class="hr-settings--athlete-max-hr hr-settings--input"
+                                                   type="number" inputmode="numeric"
+                                                   min="100" max="230" placeholder="--" />
+                                        </label>
+                                        <button class="hr-settings--save settings-tile--btn">Save</button>
+                                    </hr-control-settings>
+                                </section>
+                            </div>
+                        </details>
 
-                    <!-- quiz settings (src/integrations/quiz) -->
-                    <section id="quiz-settings">
-                        <h2 class="page--heading">Quiz</h2>
-                        <x-quiz-manager></x-quiz-manager>
-                    </section>
+                        <details class="integration-section" data-section="analysis">
+                            <summary class="integration-section--summary">
+                                <span class="integration-section--title">Ride export &amp; analysis</span>
+                                <span class="integration-section--hint">Uploads, intervals.icu, Strava, HR zones</span>
+                            </summary>
+                            <div class="integration-section--body">
+                                <!-- ride export & analysis (src/integrations/analysis) -->
+                                <section id="analysis-settings">
+                                    <x-analysis-settings></x-analysis-settings>
+                                </section>
+                            </div>
+                        </details>
 
-                    <!-- ride export & analysis (src/integrations/analysis) -->
-                    <section id="analysis-settings">
-                        <x-analysis-settings></x-analysis-settings>
-                    </section>
+                        <details class="integration-section" data-section="ai">
+                            <summary class="integration-section--summary">
+                                <span class="integration-section--title">AI coach</span>
+                                <span class="integration-section--hint">Anthropic API key, readiness</span>
+                            </summary>
+                            <div class="integration-section--body">
+                                <!-- ai coach settings (src/integrations/ai) -->
+                                <section id="ai-settings">
+                                    <x-ai-settings></x-ai-settings>
+                                    <x-ai-planner></x-ai-planner>
+                                </section>
+                            </div>
+                        </details>
+
+                        <details class="integration-section" data-section="calendar">
+                            <summary class="integration-section--summary">
+                                <span class="integration-section--title">Calendar</span>
+                                <span class="integration-section--hint">Ride windows, Google / Apple calendar</span>
+                            </summary>
+                            <div class="integration-section--body">
+                                <!-- calendar integration (src/integrations/calendar) -->
+                                <section id="calendar-settings">
+                                    <calendar-settings></calendar-settings>
+                                </section>
+                            </div>
+                        </details>
+
+                        <details class="integration-section" data-section="media">
+                            <summary class="integration-section--summary">
+                                <span class="integration-section--title">Music &amp; podcasts</span>
+                                <span class="integration-section--hint">Spotify, local files, RSS</span>
+                            </summary>
+                            <div class="integration-section--body">
+                                <!-- media integration (src/integrations/media) -->
+                                <section id="media-settings" class="settings-section">
+                                    <x-media-settings></x-media-settings>
+                                </section>
+                            </div>
+                        </details>
+
+                        <details class="integration-section" data-section="quiz">
+                            <summary class="integration-section--summary">
+                                <span class="integration-section--title">Quiz</span>
+                                <span class="integration-section--hint">Flashcard decks during rides</span>
+                            </summary>
+                            <div class="integration-section--body">
+                                <!-- quiz settings (src/integrations/quiz) -->
+                                <section id="quiz-settings">
+                                    <x-quiz-manager></x-quiz-manager>
+                                </section>
+                            </div>
+                        </details>
+                    </div> <!-- end integrations-settings -->
 
                     <!-- about -->
                     <div id="about">

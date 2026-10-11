@@ -329,6 +329,39 @@ function FreeRide(args = {}) {
     return Element(spec);
 }
 
+// Heart rate ramps (Warmup / Ramp / Cooldown): HeartRateLow is the value at the
+// start and HeartRateHigh at the end (the same convention this parser uses for
+// PowerLow / PowerHigh); HeartRate alone holds a flat target. Values are bpm or
+// fractions of LTHR (<= 2). Both ends must use the same unit; the ramp is linear.
+function isRelativeHr(x) {
+    return x > 0 && x <= 2;
+}
+
+function heartRateRamp(element, stepsCount) {
+    const start = element.HeartRateLow ?? element.HeartRate ?? element.HeartRateHigh;
+    const end   = element.HeartRateHigh ?? element.HeartRate ?? element.HeartRateLow;
+    if(!exists(start) || !exists(end) || !(stepsCount > 0)) return null;
+    if(isRelativeHr(start) !== isRelativeHr(end)) {
+        console.warn(`:zwo 'heart rate ramp mixes bpm and LTHR fraction (${start} -> ${end}), ignored'`);
+        return null;
+    }
+    const relative = isRelativeHr(start);
+    const dx = stepsCount > 1 ? (end - start) / (stepsCount - 1) : 0;
+    return Array.from({length: stepsCount}, (_, i) => {
+        const value = start + dx * i;
+        return relative ? Math.round(value * 1000) / 1000 : Math.round(value);
+    });
+}
+
+function heartRateRampAttrs(start = {}, end = {}) {
+    if(!exists(start.heartRate) && !exists(end.heartRate)) return {};
+    if(start.heartRate === end.heartRate) return {HeartRate: start.heartRate};
+    const res = {};
+    if(exists(start.heartRate)) res.HeartRateLow  = start.heartRate;
+    if(exists(end.heartRate))   res.HeartRateHigh = end.heartRate;
+    return res;
+}
+
 function Warmup(args = {}) {
     const defaults = {
         timeDx: 10,
@@ -351,29 +384,33 @@ function Warmup(args = {}) {
         const cadence     = element.Cadence;
         const cadenceLow  = element.CadenceLow;
         const cadenceHigh = element.CadenceHigh;
+        const hasPower    = exists(powerLow) || exists(powerHigh);
 
         const stepsCount = parseInt(duration / timeDx);
         const powerDx    = (powerHigh - powerLow) / (stepsCount - 1);
         const cadenceDx  = (cadenceHigh - cadenceLow) / (stepsCount - 1);
+        const heartRates = heartRateRamp(element, stepsCount);
 
         let steps       = [];
         let stepPower   = powerLow;
         let stepCadence = cadenceLow;
 
         for(let i = 0; i < stepsCount; i++) {
+            const step = {duration: timeDx};
+            if(hasPower) step.power = stepPower;
             if(exists(cadenceLow) && exists(cadenceHigh)) {
-                steps.push({duration: timeDx, power: stepPower, cadence: Math.round(stepCadence),});
+                step.cadence = Math.round(stepCadence);
                 stepCadence = (stepCadence + cadenceDx);
             } else if(exists(cadence)) {
-                steps.push({duration: timeDx, power: stepPower, cadence,});
-            } else {
-                steps.push({duration: timeDx, power: stepPower});
+                step.cadence = cadence;
             }
+            if(heartRates) step.heartRate = heartRates[i];
+            steps.push(step);
             stepPower = (stepPower + powerDx);
         }
 
         const fixedSteps = steps.map((step) => {
-            step.power = toFixed(step.power, 2);
+            if(hasPower) step.power = toFixed(step.power, 2);
             return step;
         });
 
@@ -393,6 +430,7 @@ function Warmup(args = {}) {
 
         if(exists(start.power)) res.PowerLow = start.power;
         if(exists(end.power))   res.PowerHigh = end.power;
+        Object.assign(res, heartRateRampAttrs(start, end));
 
         return res;
     }
@@ -417,22 +455,27 @@ function Cooldown(args = {}) {
 
     function toInterval(element) {
         const duration  = element.Duration;
-        const powerLow  = element.PowerHigh;
-        const powerHigh = element.PowerLow;
+        const powerLow  = element.PowerHigh ?? element.Power;
+        const powerHigh = element.PowerLow ?? element.Power;
+        const hasPower  = exists(powerLow) || exists(powerHigh);
 
         const stepsCount = parseInt(duration / timeDx);
         const powerDx    = (powerHigh - powerLow) / (stepsCount - 1);
+        const heartRates = heartRateRamp(element, stepsCount);
 
         let steps     = [];
         let stepPower = powerHigh;
 
         for(let i = 0; i < stepsCount; i++) {
-            steps.push({duration: timeDx, power: stepPower});
+            const step = {duration: timeDx};
+            if(hasPower) step.power = stepPower;
+            if(heartRates) step.heartRate = heartRates[i];
+            steps.push(step);
             stepPower = (stepPower - powerDx);
         }
 
         const fixedSteps = steps.map((step) => {
-            step.power = toFixed(step.power, 2);
+            if(hasPower) step.power = toFixed(step.power, 2);
             return step;
         });
 
@@ -452,6 +495,7 @@ function Cooldown(args = {}) {
 
         if(exists(start.power)) res.PowerLow = start.power;
         if(exists(end.power))   res.PowerHigh  = end.power;
+        Object.assign(res, heartRateRampAttrs(start, end));
 
         return res;
     }
@@ -747,9 +791,12 @@ const Attrs = {
 
     Distance: Attribute({name: 'Distance', decode: parseInt}),
 
-    HeartRate:    Attribute({name: 'HeartRate', decode: parseInt}),
-    OnHeartRate:  Attribute({name: 'OnHeartRate', decode: parseInt}),
-    OffHeartRate: Attribute({name: 'OffHeartRate', decode: parseInt}),
+    // bpm (> 2) or a fraction of LTHR (<= 2), see src/integrations/hr-control/targets.js
+    HeartRate:     Attribute({name: 'HeartRate', decode: parseFloat}),
+    OnHeartRate:   Attribute({name: 'OnHeartRate', decode: parseFloat}),
+    OffHeartRate:  Attribute({name: 'OffHeartRate', decode: parseFloat}),
+    HeartRateLow:  Attribute({name: 'HeartRateLow', decode: parseFloat}),
+    HeartRateHigh: Attribute({name: 'HeartRateHigh', decode: parseFloat}),
 
     Sim:   Attribute({name: 'Sim', decode: decodeSim, encode: encodeSim}),
     Track: Attribute({name: 'Track', decode: decodeSim, encode: encodeSim}),

@@ -3,6 +3,7 @@ import { kphToMps, mpsToKph, timeDiff, pad } from './utils.js';
 import { models } from './models/models.js';
 import { ControlMode, } from './ble/enums.js';
 import { TimerStatus, EventType, } from './activity/enums.js';
+import { toBpm as heartRateToBpm } from './integrations/hr-control/targets.js';
 
 // const timer = new Worker('./timer.js');
 const timer = new Worker(new URL('./timer.js', import.meta.url));
@@ -41,7 +42,7 @@ class Watch {
         xf.sub('db:elapsed',       elapsed => { self.elapsed       = elapsed; });
         xf.sub('db:lapTime',          time => { self.lapTime       = time; });
         xf.sub('db:stepTime',         time => { self.stepTime      = time; });
-        xf.sub('db:intervalDuration', time => { self.lapDuration   = time; });
+        xf.sub('db:intervalDuration', time => { self.intervalDuration = time; });
         xf.sub('db:stepDuration',     time => { self.stepDuration  = time; });
         xf.sub('db:intervalIndex',   index => { self.intervalIndex = index; });
         xf.sub('db:stepIndex',       index => { self.stepIndex     = index; });
@@ -399,7 +400,7 @@ class Watch {
 }
 
 // These regs have access to the global db state and can mutate it
-xf.reg('watch:lapDuration',    (time, db) => db.intervalDuration = time);
+xf.reg('watch:intervalDuration', (time, db) => db.intervalDuration = time);
 xf.reg('watch:stepDuration',   (time, db) => db.stepDuration     = time);
 xf.reg('watch:lapTime',        (time, db) => db.lapTime          = time);
 xf.reg('watch:stepTime',       (time, db) => db.stepTime         = time);
@@ -407,11 +408,18 @@ xf.reg('watch:intervalIndex', (index, db) => db.intervalIndex    = index);
 xf.reg('watch:stepIndex',     (index, db) => {
     db.stepIndex         = index;
     const intervalIndex  = db.intervalIndex;
-    const powerTarget    = db.workout.intervals[intervalIndex].steps[index].power;
+    let   powerTarget    = db.workout.intervals[intervalIndex].steps[index].power;
     const slopeTarget    = db.workout.intervals[intervalIndex].steps[index].slope;
     const cadenceTarget  = db.workout.intervals[intervalIndex].steps[index].cadence;
     const distanceTarget = db.workout.intervals[intervalIndex].steps[index].distance;
-    const heartRateTarget = db.workout.intervals[intervalIndex].steps[index].heartRate;
+    // bpm, or a fraction of LTHR (<= 2) resolved with the athlete's LTHR
+    const heartRateRaw    = db.workout.intervals[intervalIndex].steps[index].heartRate;
+    const heartRateTarget = exists(heartRateRaw) ? (heartRateToBpm(heartRateRaw) ?? undefined) : undefined;
+    if(exists(heartRateRaw) && !exists(heartRateTarget)) {
+        console.warn(`:watch :step 'heart rate target ${heartRateRaw} is relative to LTHR, but no LTHR is set'`);
+        // fall back to ERG at the seed power, or an endurance level (as drawn in the graph)
+        if(!exists(powerTarget)) powerTarget = 0.6;
+    }
 
     if(exists(slopeTarget)) {
         xf.dispatch('ui:slope-target-set', slopeTarget);

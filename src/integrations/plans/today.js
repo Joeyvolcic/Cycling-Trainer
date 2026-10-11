@@ -64,11 +64,24 @@ function isRiding(db) {
     return (db.elapsed ?? 0) > 0;
 }
 
-// startup: after models.session.restore() in db.js 'app:start'
+// A deep link (?workout= / ?planEntry=, routed by models/api.js during app start)
+// picks the workout explicitly; it arrives while the restore below is still
+// awaiting IndexedDB, so remember it and don't override it with today's entry.
+let deepLinked = false;
+xf.sub('app:deeplink', () => { deepLinked = true; });
+
+// Startup owner of "today's workout" (deterministic precedence):
+//   1. a resumed ride keeps its workout
+//   2. a deep link wins
+//   3. today's local plan entry (here)
+//   4. intervals.icu planned workout (models.planned.wod(), skipped when
+//      hasPlannedToday(); if it lands first, step 3 replaces it)
+// The quick-start card and the AI readiness panel only offer/load on user action.
 xf.reg('workout:restore', async function(_, db) {
     try {
         await listPlans(); // fill the cache used by hasPlannedToday()
         if(isRiding(db)) return; // resumed session keeps its workout (and active entry)
+        if(deepLinked) return;
 
         const entries = (await entriesForDate(todayISO())).filter(e => e.status === 'planned');
         if(entries.length > 0) {
@@ -97,10 +110,27 @@ xf.reg('ui:plans:ride', async function({planId, entryId} = {}, db) {
     }
 });
 
+// a modified copy of the entry's workout (e.g. the AI readiness check's adjusted
+// workout, meta.adjustedFrom = original id) still rides that entry
+function isEntryWorkout(workout, current = active) {
+    if(!workout || !current) return false;
+    return workout.id === current.workoutId ||
+           (!!workout.meta?.adjustedFrom && workout.meta.adjustedFrom === current.workoutId) ||
+           (!!current.originalWorkoutId && workout.meta?.adjustedFrom === current.originalWorkoutId);
+}
+
 // the user picked another workout -> the plan entry is no longer active
 xf.sub('db:workout', workout => {
     if(!started || !active) return;
-    if(workout?.id !== active.workoutId) setActive(null);
+    if(workout?.id === active.workoutId) return;
+    if(isEntryWorkout(workout)) {
+        setActive(Object.assign({}, active, {
+            workoutId: workout.id,
+            originalWorkoutId: active.originalWorkoutId ?? active.workoutId,
+        }));
+        return;
+    }
+    setActive(null);
 });
 
 // activity saved (db.js 'watch:stopped' -> models.activity.createFromCurrent)
@@ -109,7 +139,7 @@ xf.reg('activity:add', async function(summary, db) {
     const current = active;
     try {
         let target;
-        if(current && workout?.id === current.workoutId) {
+        if(current && isEntryWorkout(workout, current)) {
             target = {planId: current.planId, entryId: current.entryId};
         } else {
             const entries = await entriesForDate(todayISO());
@@ -127,4 +157,4 @@ xf.reg('activity:add', async function(summary, db) {
     }
 });
 
-export { getActive, loadEntry };
+export { getActive, loadEntry, isEntryWorkout };
