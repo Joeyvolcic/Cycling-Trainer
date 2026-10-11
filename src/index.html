@@ -2,8 +2,15 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="theme-color" content="#35363a" />
+
+        <!-- iPad / iOS home-screen web app (see doc/ipad.md) -->
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="apple-mobile-web-app-title" content="Auuki">
+        <meta name="format-detection" content="telephone=no">
 
         <link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png">
         <link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png">
@@ -16,6 +23,7 @@
         <link rel="preconnect" href="https://fonts.gstatic.com">
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
         <link href="css/flux.css" rel="stylesheet"/>
+        <link href="css/layouts.css" rel="stylesheet"/>
         <link rel="manifest" href="./manifest.webmanifest">
     </head>
 
@@ -38,15 +46,17 @@
                     <div id="home-page-wrapper">
 
                         <header class="connections-header page-header">
-                            <connection-switch for="ble:controllable" id="switch-controllable" class="connection-switch">
+                            <connection-switch for="ble:controllable" id="switch-controllable" class="connection-switch" role="button" aria-label="Connect trainer">
                                 <div class="connection-switch--indicator off"></div>
-                                <div class="connection-switch--label">Controllable</div>
+                                <div class="connection-switch--label">Trainer</div>
                             </connection-switch>
 
-                            <connection-switch for="ble:heartRateMonitor" id="switch-hrm" class="connection-switch">
+                            <connection-switch for="ble:heartRateMonitor" id="switch-hrm" class="connection-switch" role="button" aria-label="Connect heart rate monitor">
                                 <div class="connection-switch--indicator off"></div>
-                                <div class="connection-switch--label">HRM</div>
+                                <div class="connection-switch--label">Heart Rate</div>
                             </connection-switch>
+
+                            <layout-cycle class="layout-cycle" role="button" aria-label="Switch layout"></layout-cycle>
                         </header>
 
                         <div class="data-tiles">
@@ -373,7 +383,16 @@
                                 </tab-group>
                             </div> <!-- end targets--cont -->
                         </div> <!-- end targets -->
+
+                        <button type="button" id="focus-toggle" class="focus-toggle" aria-label="Expand workout view">
+                            <span class="focus-toggle--expand">Expand</span>
+                            <span class="focus-toggle--collapse">Collapse</span>
+                        </button>
                 </div> <!-- end home-page-wrapper -->
+
+                <!-- integrations: panels registered via src/integrations/registry.js (see doc/integrations-contract.md) -->
+                <div id="integrations-dock"></div>
+                <quick-start></quick-start>
             </div> <!-- end page-home -->
 
             <div id="workouts-page" class="page" page="workouts">
@@ -1455,6 +1474,13 @@
                                 <theme-layout class="option--value">
                                     DARK
                                 </theme-layout>
+                            </div>
+                        </div>
+
+                        <div class="list--row--outer">
+                            <div class="list--row--inner option option--layout">
+                                <div class="option--name">Layout</div>
+                                <layout-select class="option--value"></layout-select>
                             </div>
                         </div>
 

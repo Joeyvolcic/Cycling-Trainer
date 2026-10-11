@@ -2,6 +2,7 @@ import { xf, exists, existance, validate, equals, isNumber, last, empty, avg, to
 import { formatTime } from '../utils.js';
 import { models } from '../models/models.js';
 import { DialogMsg } from '../models/enums.js';
+import { guidance } from '../integrations/ui/platform.js';
 
 
 //
@@ -1821,14 +1822,16 @@ class CompatibilityCheck extends HTMLElement {
     }
     show() {
         const self = this;
+        // platform-aware guidance (iPadOS Safari -> Bluefy, desktop -> Chrome/Edge)
+        const info = guidance();
         this.innerHTML =
-        `<div id="compatibility--cont">
-             <p>This browser is NOT supported. Please open the app with </p>
-             <a href="https://www.google.com/chrome/" target="_blank">Chrome</a> or
-             <a href="https://www.microsoft.com/edge" target="_blank">Edge</a>
-             <p>Please note that <b>iOS</b> is NOT supported at all, regardless of browser.</p>
-             <p>For more information visit the project <a href="https://github.com/dvmarinoff/Flux" target="_blank">Page.</a></p>
+        `<div id="compatibility--cont" class="compatibility--${info.level}">
+             <button type="button" class="compatibility--dismiss" aria-label="Dismiss">&times;</button>
+             <p class="compatibility--title"><b>${info.title}</b></p>
+             ${info.html}
          </div>`;
+        this.querySelector('.compatibility--dismiss')
+            .addEventListener('click', self.hide.bind(self), self.signal);
     }
     hide() {
         const self = this;
