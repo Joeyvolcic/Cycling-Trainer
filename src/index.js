@@ -5,6 +5,7 @@ import './ble/devices.js';
 import './watch.js';
 import './course.js';
 import './lock.js';
+import './integrations/media/media.js';
 
 function startServiceWorker() {
     if('serviceWorker' in navigator) {

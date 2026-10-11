@@ -26,3 +26,6 @@ Shared conventions so features built in parallel slot together. Keep this file c
   Dispatches `xf` event `plans:changed`.
 - Wellness/recovery: `src/integrations/ai/wellness.js` exports `async getWellness(date)` -> `{sleepScore?, sleepHours?, hrv?, restingHR?, readiness?, source}` (intervals.icu wellness first).
 - Ride summary for analysis: `src/integrations/analysis/summary.js` exports `summarizeActivity(activity)` -> plain JSON (duration, avg/NP power, HR stats, time-in-zone, interval compliance).
+- Media (`src/integrations/media/`, see `doc/media.md`): panel id `media`, keys `media:*` in localStorage, own IndexedDB
+  database `flux-media` (does not touch `src/db.js`). Emits `media:segment` `{index, type, playlist}` on workout interval
+  changes, with `type` in `warmup|endurance|threshold|vo2|recovery` (pure helpers in `media/intensity.js`).
