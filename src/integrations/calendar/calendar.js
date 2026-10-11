@@ -255,14 +255,19 @@ async function exportIcs({open = false} = {}) {
 
 async function openFromLink({workout, planEntry, plan} = {}) {
     let workoutId = workout;
+    let entryRef = null;
     if(planEntry && (workoutId === undefined || workoutId === null)) {
         const list = plan ? [await plans.getPlan(plan)] : await plans.listPlans();
         for(const p of list.filter(Boolean)) {
             const e = (p.entries ?? []).find(e => String(e.id) === String(planEntry));
-            if(e) { workoutId = e.workoutId; break; }
+            if(e) { workoutId = e.workoutId; entryRef = {planId: p.id, entryId: e.id}; break; }
         }
     }
-    if(workoutId !== undefined && workoutId !== null && findWorkout(workoutId)) {
+    if(entryRef) {
+        // load through the plans module so the entry becomes the active one and
+        // the ride marks it done (also resolves workout snapshots / names)
+        xf.dispatch('ui:plans:ride', entryRef);
+    } else if(workoutId !== undefined && workoutId !== null && findWorkout(workoutId)) {
         xf.dispatch('ui:workout:select', findWorkout(workoutId).id);
     } else if(workoutId) {
         console.warn(`:calendar :deeplink workout '${workoutId}' not found`);

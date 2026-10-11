@@ -840,6 +840,9 @@ class Planned {
             parse: JSON.parse,
             fallback: this.defaultValue(),
         });
+        // a deep link (?workout= / ?planEntry=) chose the workout, don't auto-select
+        this.deepLinked = false;
+        xf.sub('app:deeplink', () => { self.deepLinked = true; });
     }
     defaultValue() {
         return {workouts: [], modified: {}};
@@ -897,7 +900,7 @@ class Planned {
             this.backup();
 
             // a local training plan entry for today wins (see integrations/plans/today.js)
-            if(!this.isEmpty() && !hasPlannedToday()) {
+            if(!this.isEmpty() && !hasPlannedToday() && !this.deepLinked) {
                 for(let workout of this.data.workouts) {
                     if(isToday(workout.meta.startDateLocal)) {
                         const id = workout.id;

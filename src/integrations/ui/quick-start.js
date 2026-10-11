@@ -2,16 +2,49 @@ import { xf } from '../../functions.js';
 import { isToday } from '../../utils.js';
 import { models } from '../../models/models.js';
 import { capabilities } from './platform.js';
+import { cachedEntriesForDate, todayISO } from '../plans/plans.js';
+import { getActive, isEntryWorkout } from '../plans/today.js';
 
 // <quick-start> — first-run / pre-ride card on the home page:
 //   1. connect trainer  2. connect heart rate (optional)  3. one tap "Start <workout>"
-// Also offers "Load today's planned workout" when intervals.icu has one for today.
+// "Today's plan": a local training plan entry for today wins (src/integrations/plans,
+// loaded as the workout on startup by plans/today.js, so the big Start button rides
+// it and the saved activity marks the entry done); otherwise intervals.icu's planned
+// workout for today is offered. The card never loads a workout on its own.
 // Hidden once the ride starts; can be dismissed for the session.
 
 const DISMISS_KEY = 'ui:quick-start:dismissed';
 
 function todaysPlanned(planned = []) {
     return planned.find(w => w?.meta?.startDateLocal && isToday(w.meta.startDateLocal));
+}
+
+// first not-yet-done local plan entry for today (sync, from the plans cache)
+function todaysEntry(date = todayISO()) {
+    try {
+        return cachedEntriesForDate(date).find(e => e.status === 'planned');
+    } catch(e) {
+        return undefined;
+    }
+}
+
+function entryName(entry) {
+    return entry?.workoutName ?? entry?.workout?.meta?.name ?? 'workout';
+}
+
+// What the card offers for today, given the loaded workout and the active plan entry:
+//   {kind: 'plan',      entry, loaded}  local plan entry (loaded = it is the current workout)
+//   {kind: 'intervals', workout, loaded} intervals.icu planned workout
+//   null                                 nothing planned today
+function todayOffer({entry, active, workout, planned = []} = {}) {
+    if(entry) {
+        const loaded = !!active && active.entryId === entry.id &&
+                       active.planId === entry.planId && isEntryWorkout(workout, active);
+        return {kind: 'plan', entry, loaded};
+    }
+    const icu = todaysPlanned(planned);
+    if(icu) return {kind: 'intervals', workout: icu, loaded: icu.id === workout?.id};
+    return null;
 }
 
 function escapeHtml(str = '') {
@@ -29,6 +62,7 @@ class QuickStart extends HTMLElement {
             watchStatus: 'stopped',
             elapsed: 0,
             workout: undefined,
+            active: getActive(),
             dismissed: this.restoreDismissed(),
         };
 
@@ -71,8 +105,12 @@ class QuickStart extends HTMLElement {
             xf.dispatch('ui:page-set', 'workouts');
         }, signal);
         this.$today.addEventListener('click', () => {
-            const id = this.$today.dataset.id;
-            if(id) xf.dispatch('ui:planned:select', id);
+            const { kind, id, planId, entryId } = this.$today.dataset;
+            if(kind === 'plan' && planId && entryId) {
+                xf.dispatch('ui:plans:ride', {planId, entryId});
+            } else if(kind === 'intervals' && id) {
+                xf.dispatch('ui:planned:select', id);
+            }
         }, signal);
 
         // connect hints
@@ -93,6 +131,9 @@ class QuickStart extends HTMLElement {
         xf.sub('db:elapsed',     t => { this.state.elapsed = t; this.render(); }, signal);
         xf.sub('db:workout',     w => { this.state.workout = w; this.render(); }, signal);
         xf.sub('action:planned', () => this.render(), signal);
+        xf.sub('plans:changed',  () => this.render(), signal);
+        xf.sub('plans:today',    () => this.render(), signal);
+        xf.sub('plans:active',   a => { this.state.active = a; this.render(); }, signal);
         xf.sub('ui:quick-start:show', () => { this.state.dismissed = false; this.saveDismissed(false); this.render(); }, signal);
 
         this.render();
@@ -118,20 +159,33 @@ class QuickStart extends HTMLElement {
         document.body.classList.toggle('quick-start-open', visible);
         if(!visible) return;
 
-        const name = workout?.meta?.name;
-        this.$start.textContent = name ? `Start ${name}` : 'Start free ride';
+        let planned = [];
+        try { planned = models.planned?.list?.() ?? []; } catch(e) { planned = []; }
+        const offer = todayOffer({entry: todaysEntry(), active: this.state.active, workout, planned});
 
-        let today;
-        try { today = todaysPlanned(models.planned?.list?.() ?? []); } catch(e) { today = undefined; }
-        const showToday = today && today.id !== workout?.id;
+        const name = workout?.meta?.name;
+        this.$start.textContent =
+            offer?.loaded && offer.kind === 'plan' ? `Start today's plan: ${name ?? entryName(offer.entry)}` :
+            name ? `Start ${name}` : 'Start free ride';
+
+        const showToday = !!offer && !offer.loaded;
         this.$today.hidden = !showToday;
-        if(showToday) {
-            this.$today.dataset.id = today.id;
-            this.$today.innerHTML = `Today's plan: <b>${escapeHtml(today.meta.name)}</b> &mdash; load it`;
+        delete this.$today.dataset.id;
+        delete this.$today.dataset.planId;
+        delete this.$today.dataset.entryId;
+        if(!showToday) return;
+        this.$today.dataset.kind = offer.kind;
+        if(offer.kind === 'plan') {
+            this.$today.dataset.planId = offer.entry.planId;
+            this.$today.dataset.entryId = offer.entry.id;
+            this.$today.innerHTML = `Today's plan: <b>${escapeHtml(entryName(offer.entry))}</b> &mdash; load it`;
+        } else {
+            this.$today.dataset.id = offer.workout.id;
+            this.$today.innerHTML = `Today's plan (intervals.icu): <b>${escapeHtml(offer.workout.meta.name)}</b> &mdash; load it`;
         }
     }
 }
 
 customElements.get('quick-start') || customElements.define('quick-start', QuickStart);
 
-export { QuickStart, todaysPlanned };
+export { QuickStart, todaysPlanned, todaysEntry, todayOffer };
