@@ -331,6 +331,11 @@ xf.reg('ui:workout:remove', (id, db) => {
 xf.reg('ui:workout:upload', async function(files, db) {
     for(let file of Object.values(files)) {
         const { result, name } = await models.workout.readFromFile(file);
+        if(name.toLowerCase().endsWith('.json')) {
+            // workouts JSON export, see src/integrations/plans/library.js
+            xf.dispatch('ui:workouts:import-json', result);
+            continue;
+        }
         const workout = models.workout.parse(result, name);
         models.workouts.add(db.workouts, workout);
         xf.dispatch('db:workouts', db);
@@ -419,8 +424,8 @@ xf.reg('app:start', async function(_, db) {
 
     db.sources = models.sources.set(models.sources.restore());
 
-    // IndexedDB Schema Version 3
-    await idb.start('store', 3, ['session', 'workouts', 'activity']);
+    // IndexedDB Schema Version 4 (+ 'plans', see src/integrations/plans/plans.js)
+    await idb.start('store', 4, ['session', 'workouts', 'activity', 'plans']);
     db.workouts = await models.workouts.restore();
     db.activity = await models.activity.restore();
     db.workout = models.workout.restore(db);

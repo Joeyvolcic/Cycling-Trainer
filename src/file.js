@@ -48,6 +48,7 @@ class FileHandler {
             case 'zwo': return self.readTextFile(file); break;
             case 'erg': return self.readTextFile(file); break;
             case 'mrc': return self.readTextFile(file); break;
+            case 'json': return self.readTextFile(file); break;
             case 'fit': return self.readBinaryFile(file); break;
             default:           self.unsupportedFormat(); break;
         }

@@ -14,6 +14,7 @@ import { zwo } from '../workouts/zwo.js';
 import { fileHandler } from '../file.js';
 import { Model as Cycling } from '../physics.js';
 import { fit } from '../fit/fit.js';
+import { hasPlannedToday } from '../integrations/plans/plans.js';
 
 import { Device, Status, ControlMode, } from '../ble/enums.js';
 import { TimerStatus, EventType, } from '../activity/enums.js';
@@ -886,7 +887,8 @@ class Planned {
             this.setModified(service);
             this.backup();
 
-            if(!this.isEmpty()) {
+            // a local training plan entry for today wins (see integrations/plans/today.js)
+            if(!this.isEmpty() && !hasPlannedToday()) {
                 for(let workout of this.data.workouts) {
                     if(isToday(workout.meta.startDateLocal)) {
                         const id = workout.id;

@@ -40,6 +40,12 @@ function workoutTemplate(workout) {
                     <div class="workout--full-info">
                         <div class="workout-list--graph-cont">${workout.graph}</div>
                         <div class="workout--description">${workout.meta.description}</div>
+                        <div class="workout--lib-actions">
+                            ${exists(workout.intervals) ? `<button type="button" class="lib-btn" data-action="edit">Edit</button>` : ''}
+                            <button type="button" class="lib-btn" data-action="rename">Rename</button>
+                            <button type="button" class="lib-btn" data-action="export">Export</button>
+                            <button type="button" class="lib-btn" data-action="plan">Add to plan</button>
+                        </div>
                     </div>
                 </div>
                 <div class="workout--actions">
@@ -170,6 +176,8 @@ class WorkoutListItem extends HTMLElement {
         this.selectBtn.addEventListener('pointerup', this.onRadio.bind(this), this.signal);
 
         this.removeBtn.addEventListener('pointerup', this.onRemove.bind(this), this.signal);
+        this.querySelector('.workout--lib-actions')
+            ?.addEventListener('click', this.onLibAction.bind(this), this.signal);
 
         this.addEventListener('mouseover', this.onHover.bind(this), this.signal);
         this.addEventListener('mouseout', this.onMouseOut.bind(this), this.signal);
@@ -239,6 +247,28 @@ class WorkoutListItem extends HTMLElement {
     onRadio(e) {
         e.stopPropagation();
         xf.dispatch('ui:workout:select', this.id);
+    }
+    onLibAction(e) {
+        const action = e.target.closest('[data-action]')?.dataset.action;
+        if(!action) return;
+        e.stopPropagation();
+        if(action === 'edit') {
+            xf.dispatch('ui:workout:edit', this.id);
+        }
+        if(action === 'rename') {
+            const current = this.querySelector('.workout--name')?.textContent ?? '';
+            const name = window.prompt('Rename workout', current);
+            if(name && name.trim()) {
+                xf.dispatch('ui:workout:rename', {id: this.id, name: name.trim()});
+            }
+        }
+        if(action === 'export') {
+            xf.dispatch('ui:workout:export', this.id);
+        }
+        if(action === 'plan') {
+            // handled by <plans-view> (src/integrations/plans/plans-view.js)
+            xf.dispatch('ui:plans:add-workout', this.id);
+        }
     }
     onRemove(e) {
         console.log(`:ui :workout :remove :id '${this.id}'`);

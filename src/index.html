@@ -539,6 +539,16 @@
 
                 <!-- workout-list -->
                 <div id="view--workouts-workouts" class="workout-list sub-tab active">
+                    <!-- training plans (src/integrations/plans) -->
+                    <div class="list--sub-section">
+                        <div class="list--row--outer">
+                            <div class="list--row--inner list--heading--cont">
+                                <h2 class="list--sub-heading">Training Plan</h2>
+                                <plans-view id="plans-view"></plans-view>
+                            </div>
+                        </div>
+                    </div> <!-- end training plans -->
+
                     <div class="list--sub-section">
                         <div class="list--row--outer">
                             <div class="list--row--inner list--heading--cont control">
@@ -582,6 +592,7 @@
                         <div class="list--row--outer">
                             <div class="list--row--inner list--heading--cont">
                                 <h2 class="list--sub-heading">Library</h2>
+                                <library-tools></library-tools>
                             </div>
                         </div>
                         <div class="buildin-workouts">
@@ -599,7 +610,7 @@
                                    class="file-btn-native"
                                    name="workout-file"
                                    type="file"
-                                   accept=".zwo,.fit"
+                                   accept=".zwo,.fit,.json"
                                    multiple
                                    value="" />
 

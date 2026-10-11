@@ -23,6 +23,14 @@ Shared conventions so features built in parallel slot together. Keep this file c
                 status: 'planned'|'done'|'skipped', activityId?, calendarEventId? }] }
   ```
   Exports: `listPlans, getPlan, savePlan, deletePlan, entriesForDate(date), updateEntry(planId, entryId, patch)`.
-  Dispatches `xf` event `plans:changed`.
+  Dispatches `xf` event `plans:changed` with `{action: 'save'|'delete'|'entry', planId, entryId?}`.
+  `entriesForDate` returns entries tagged with `planId` and `planName`. Entries may carry an optional
+  `workout` snapshot (`{meta, intervals}`) so plans stay portable; resolve with `resolveWorkout(entry, db.workouts)`.
+  Extras: `createPlan, addEntry, addWorkout, removeEntry, moveEntry, reorderEntry, duplicateWeek,
+  exportPlan, importPlan, hasPlannedToday, todayISO, addDays, weekStart`.
+  IDB `store` is at version 4 with stores `['session','workouts','activity','plans']`; any version bump now
+  creates missing stores, so add yours to the list in `db.js` and bump the version.
+  Today's entry is loaded as the workout on startup (local plan wins over intervals.icu); `ui:plans:ride {planId, entryId}`
+  loads an entry; `plans:today {entry, workout}` / `plans:active` are dispatched; a saved activity marks the entry `done`.
 - Wellness/recovery: `src/integrations/ai/wellness.js` exports `async getWellness(date)` -> `{sleepScore?, sleepHours?, hrv?, restingHR?, readiness?, source}` (intervals.icu wellness first).
 - Ride summary for analysis: `src/integrations/analysis/summary.js` exports `summarizeActivity(activity)` -> plain JSON (duration, avg/NP power, HR stats, time-in-zone, interval compliance).

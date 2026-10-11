@@ -1,6 +1,7 @@
 import { xf } from './functions.js';
 import './db.js';
 import './views/views.js';
+import './integrations/plans/index.js';
 import './ble/devices.js';
 import './watch.js';
 import './course.js';

@@ -301,10 +301,8 @@ function Selection(args = {}) {
     });
 }
 
-function Editor() {
-    const rows = [];
-
-    let workout = {
+function defaultWorkout() {
+    return {
         meta: {
             name: 'New Workout',
             author: 'Auuki',
@@ -314,6 +312,32 @@ function Editor() {
         },
         intervals: [],
     };
+}
+
+// interval {duration, steps: [...]} -> editor row state
+function intervalToRowState(interval) {
+    const steps = interval.steps ?? [];
+    const firstStep = first(steps) ?? {};
+    const lastStep = last(steps) ?? firstStep;
+    const state = {
+        duration: interval.duration ?? firstStep.duration ?? 0,
+        power: firstStep.power ?? 0,
+        ramp: undefined,
+        slope: firstStep.slope,
+        cadence: firstStep.cadence,
+    };
+    if(steps.length > 1 && exists(lastStep.power) && lastStep.power !== firstStep.power) {
+        state.ramp = lastStep.power;
+    }
+    state.powerZone = models.ftp.percentageToZone(state.power);
+    if(exists(state.ramp)) state.rampZone = models.ftp.percentageToZone(state.ramp);
+    return state;
+}
+
+function Editor() {
+    const rows = [];
+
+    let workout = defaultWorkout();
 
     function setName(value) {
         workout.meta.name = value;
@@ -378,9 +402,31 @@ function Editor() {
         }, []);
 
         workout.meta = Object.assign(workout.meta, meta);
-        workout.intervals = Object.assign(workout.intervals, intervals);
+        workout.intervals = intervals;
 
         console.log(workout);
+        return getWorkout();
+    }
+    // load a workout (or a fresh one when undefined) and return the row models
+    function load(data) {
+        rows.length = 0;
+        workout = data ? JSON.parse(JSON.stringify(data)) : defaultWorkout();
+        workout.meta = Object.assign(defaultWorkout().meta, workout.meta ?? {});
+        (workout.intervals ?? []).forEach(interval => {
+            const row = Row();
+            row.set(intervalToRowState(interval));
+            rows.push(row);
+        });
+        return rows.slice();
+    }
+    function getWorkout() {
+        return JSON.parse(JSON.stringify(workout));
+    }
+    function getId() {
+        return workout.id;
+    }
+    function setId(id) {
+        workout.id = id;
     }
     function format(args = {}) {
         return toZwo(workout);
@@ -401,6 +447,10 @@ function Editor() {
         add,
         remove,
         save,
+        load,
+        getWorkout,
+        getId,
+        setId,
         format,
         toZwo,
     });
@@ -591,12 +641,40 @@ class WorkoutEditor extends HTMLElement {
         this.$save.addEventListener(`pointerup`, this.onSave.bind(this), this.signal);
         this.$download.addEventListener(`pointerup`, this.onDownload.bind(this), this.signal);
 
+        xf.sub('ui:editor:load', this.load.bind(this), this.signal);
+
+        this.renderMeta();
+
+        this.onAdd();
+    }
+    renderMeta() {
         this.$name.value = this.editor.getName();
         this.$author.value = this.editor.getAuthor();
         this.$category.value = this.editor.getCategory();
         this.$description.value = this.editor.getDescription();
+    }
+    // replace the editor content with a workout (null/undefined for a new one)
+    load(workout) {
+        this.rows.forEach(rowView => rowView.disconnect());
+        this.rows.clear();
+        this.$body.innerHTML = '';
 
-        this.onAdd();
+        const rowModels = this.editor.load(workout);
+        this.renderMeta();
+
+        if(empty(rowModels)) {
+            this.onAdd();
+            return;
+        }
+        rowModels.forEach(rowModel => this.appendRow(rowModel));
+        this.setTimeRefs();
+        this.setTime();
+    }
+    appendRow(rowModel) {
+        const rowView = RowView({model: rowModel});
+        this.rows.set(this.rows.size, rowView);
+        this.$body.insertAdjacentHTML('beforeend', rowView.build());
+        rowView.connect(this.$body.lastChild);
     }
     disconnectedCallback() {
         this.abortController.abort();
@@ -682,6 +760,21 @@ class WorkoutEditor extends HTMLElement {
     }
     save() {
         this.editor.save();
+        // persist into the workout library (create or update), see integrations/plans/library.js
+        if(!exists(this.editor.getId())) this.editor.setId(uuid());
+        xf.dispatch('ui:workout:save', this.editor.getWorkout());
+        this.flash('Saved to library');
+    }
+    flash(text) {
+        if(!this.$status) {
+            this.$status = document.createElement('div');
+            this.$status.className = 'editor--status';
+            this.$status.setAttribute('role', 'status');
+            this.$root.querySelector('.editor--controls')?.appendChild(this.$status);
+        }
+        this.$status.textContent = text;
+        clearTimeout(this.flashTimeout);
+        this.flashTimeout = setTimeout(() => { this.$status.textContent = ''; }, 2500);
     }
     download() {
         this.editor.save();

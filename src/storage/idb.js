@@ -49,6 +49,9 @@ function IDB(args = {}) {
                 case 2: update(storeNames);
                 case 3: latest(storeNames);
                 }
+                // any version bump: create stores that are still missing
+                // (lets features add stores by bumping the version, e.g. 'plans')
+                update(storeNames);
             };
             openReq.onerror = function() {
                 console.error(`:idb :error :open :db '${name}'`, openReq.error);
@@ -92,7 +95,7 @@ function IDB(args = {}) {
     async function update(storeNames) {
         console.log(`:idb :update :stores ${storeNames}`);
         // create IndexedDB > db > session, workouts
-        await createStores(storeNames);
+        await createStores(storeNames.filter(name => !db.objectStoreNames.contains(name)));
     }
 
     function latest(storeNames) {
