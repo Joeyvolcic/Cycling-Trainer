@@ -176,6 +176,8 @@ class WorkoutGraph extends HTMLElement {
         const viewPort = this.getViewPort();
         if(equals(viewPort.width, 0)) return;
         this.viewPort = viewPort;
+        // layouts dispatch resize on startup, possibly before a workout is loaded
+        if(equals(this.type, 'workout') && !exists(this.workout?.meta)) return;
         this.render();
     }
     onHover(e) {
