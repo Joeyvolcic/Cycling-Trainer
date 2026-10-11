@@ -44,3 +44,8 @@ Shared conventions so features built in parallel slot together. Keep this file c
   (pure core in `scheduler.js`; uses Google free/busy when connected), `syncAll()`, `exportIcs()`.
   Sync writes `calendarEventId` (and `date` when a ride had to be moved) via `updateEntry`.
   Deep links `?workout=<id>` / `?planEntry=<id>&plan=<id>` are routed by `src/models/api.js` as xf event `app:deeplink`.
+- Quiz (spaced repetition, `src/integrations/quiz/`): own IndexedDB database `flux-quiz` (stores `decks`, `cards`, `reviews`; does not touch the shared `store` DB),
+  settings in `localStorage['quiz:settings']`, last ride summary in `localStorage['quiz:last-ride']`.
+  Panel `x-quiz-panel` (registered with `element: 'x-quiz-panel'`, a tag name), manager `x-quiz-manager` in `#quiz-settings`, `x-quiz-ride-summary` in the ride report.
+  Reads `db:watchStatus`, `db:powerTarget`, `db:power3s`, `db:ftp`. Dispatches `quiz:changed`, `quiz:settings`, `quiz:state`,
+  and `quiz:ride-summary` -> `{reviewed, correct, start, end}` on ride stop (usable by analysis).

@@ -567,6 +567,7 @@
                         </div>
                         <div class="laps--cont"></div>
                     </laps-list>
+                    <x-quiz-ride-summary></x-quiz-ride-summary>
                 </div> <!-- end ride-report -->
 
                 <!-- workout-list -->
@@ -1538,6 +1539,12 @@
                     <!-- calendar integration -->
                     <section id="calendar-settings">
                         <calendar-settings></calendar-settings>
+                    </section>
+
+                    <!-- quiz settings (src/integrations/quiz) -->
+                    <section id="quiz-settings">
+                        <h2 class="page--heading">Quiz</h2>
+                        <x-quiz-manager></x-quiz-manager>
                     </section>
 
                     <!-- about -->
