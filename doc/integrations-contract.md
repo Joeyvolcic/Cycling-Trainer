@@ -72,3 +72,12 @@ Shared conventions so features built in parallel slot together. Keep this file c
   (feedback from the post-ride "Coach feedback"). Upload retry queue lives in its own IDB database `flux-analysis` (store `uploads`).
   Events: `analysis:report` / `analysis:report:open` (open the post-ride report for an activity id), `analysis:upload` (queue job changed),
   `analysis:upload:request` `{id, service}`. Credentials: `analysis:intervals-athlete-id`, `analysis:intervals-api-key`, `analysis:strava-*`.
+- AI plan builder / coach plan changes (`src/integrations/ai/planner*.js`): Claude only *chooses* (catalog refs `w1..`,
+  entry refs `e1..`, typed steps / actions via structured outputs); `planner-core.js` validates, clamps and builds
+  everything deterministically (custom workouts from steps, adjustments via `adjust.js`). Accepted plans are written with
+  workout snapshots, times from `calendar.scheduleEntries` (stored as `targetTime`), then `syncAll()` when Google is connected
+  (else the UI offers `.ics`). Entries may carry `hard` (bool, used by the scheduler), `source: 'ai'|'ai-custom'` and
+  `adjustedFrom: {workoutId, workoutName, workout?, by: 'readiness'|'coach', at, lastDecision?}` (the first original is kept).
+  Readiness "Accept" also saves the adjusted workout to the library (`ui:workout:save`) and links it from the entry, then
+  loads it with `ui:plans:ride` so the ride matches the entry. Elements: `<x-ai-planner>` (AI panel + Settings),
+  `<x-ai-plan-changes data-activity-id>` (post-ride report). Events: `ai:planner:state`, `ai:planner:accepted`, `ai:plan-changes:applied`.

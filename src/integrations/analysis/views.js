@@ -309,7 +309,8 @@ class AnalysisReport extends HTMLElement {
                     ${fb.adjustments?.length ? `<b>Adjustments to upcoming training</b><ul>${fb.adjustments.map(a =>
                         `<li>${a.when ? `<b>${esc(a.when)}:</b> ` : ''}${esc(a.suggestion)}</li>`).join('')}</ul>` : ''}
                     <div class="an-note">Saved with this activity · ${esc(new Date(fb.createdAt).toLocaleString())}</div>
-                </div>`;
+                </div>
+                ${configured ? `<x-ai-plan-changes data-activity-id="${esc(r.id)}"></x-ai-plan-changes>` : ''}`;
         }
         if(!configured) {
             return fb ? `<div class="an-section"><h3>Coach feedback</h3>${body}</div>` :

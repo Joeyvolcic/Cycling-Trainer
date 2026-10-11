@@ -147,6 +147,9 @@ class AiPanel extends HTMLElement {
             this.selectedKey = btn.dataset.key;
             this.result = undefined;
             this.render();
+        } else if(action === 'toggle-planner') {
+            this.showPlanner = !this.showPlanner;
+            this.render();
         } else if(action === 'toggle-checkin') {
             this.showCheckin = !this.showCheckin;
             this.render();
@@ -274,7 +277,9 @@ class AiPanel extends HTMLElement {
 
         const actions = r.outcome ?
               `<p class="ai-muted">${r.outcome === 'accepted' ?
-                   (r.adjusted ? 'Accepted — the adjusted workout is now loaded.' : 'Accepted — enjoy the rest day.') :
+                   (r.adjusted ? (r.decision.decision === 'keep' ? 'Accepted — riding as planned.' :
+                                  `Accepted — the adjusted workout is loaded and saved to your library${this.selected()?.entry ? ' and plan' : ''}.`) :
+                    'Accepted — enjoy the rest day.') :
                    'Rejected — riding the original plan.'}</p>` :
               `<div class="ai-row">
                    <button class="ai-btn primary" data-action="accept">${r.adjusted ? 'Accept & load' : 'Accept rest day'}</button>
@@ -323,6 +328,10 @@ class AiPanel extends HTMLElement {
                 </button>
                 ${this.error ? `<p class="ai-error">${esc(this.error)}</p>` : ''}
                 ${this.renderResult()}
+                <button class="ai-btn" data-action="toggle-planner" aria-expanded="${this.showPlanner ? 'true' : 'false'}">
+                    ${this.showPlanner ? 'Close planner' : 'Plan my week(s)'}
+                </button>
+                ${this.showPlanner ? '<x-ai-planner></x-ai-planner>' : ''}
                 ${this.renderLog()}
             </div>`;
     }
@@ -415,4 +424,4 @@ class AiSettings extends HTMLElement {
 customElements.define('x-ai-panel', AiPanel);
 customElements.define('x-ai-settings', AiSettings);
 
-export { AiPanel, AiSettings, graphSVG };
+export { AiPanel, AiSettings, graphSVG, injectStyle, esc };

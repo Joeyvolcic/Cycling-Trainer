@@ -1,6 +1,7 @@
 // AI coach integration entry: readiness check panel + settings.
 import { registerPanel } from '../registry.js';
 import './views.js';
+import './planner-view.js';
 
 const element = document.createElement('x-ai-panel');
 
