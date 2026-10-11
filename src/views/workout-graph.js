@@ -35,7 +35,10 @@ function Interval(acc, interval, width, ftp, powerMax, viewPort) {
     const stepsLength = interval.steps.length;
 
     return acc + interval.steps.reduce((a, step) => {
-        const power    = models.ftp.toAbsolute(step.power, ftp) ?? 0;
+        const heartRate = step.heartRate;
+        // heart rate steps have no fixed power, draw them at an endurance level
+        const power    = models.ftp.toAbsolute(step.power, ftp) ??
+                         (exists(heartRate) ? Math.round(ftp * 0.6) : 0);
         const cadence  = step.cadence;
         const slope    = step.slope;
         const duration = step.duration;
@@ -44,13 +47,15 @@ function Interval(acc, interval, width, ftp, powerMax, viewPort) {
         const zone     = (models.ftp.powerToZone(power, ftp)).name;
         const infoTime = formatTime({value: duration, format: 'mm:ss'});
 
-        const powerAttr    = exists(power)    ? `power="${power}"` : '';
+        const powerAttr    = exists(step.power) || !exists(heartRate) ? `power="${power}"` : '';
+        const hrAttr       = exists(heartRate) ? `heart-rate="${heartRate}"` : '';
+        const hrClass      = exists(heartRate) ? ' graph--bar--hr' : '';
         const cadenceAttr  = exists(cadence)  ? `cadence="${cadence}"` : '';
         const slopeAttr    = exists(slope)    ? `slope="${slope}"` : '';
         const durationAttr = exists(duration) ? `duration="${infoTime}"` : '';
 
         return a +
-            `<div class="graph--bar zone-${zone}" style="height: ${height}px; width: ${width}%" ${powerAttr} ${cadenceAttr} ${slopeAttr} ${durationAttr}></div>`;
+            `<div class="graph--bar zone-${zone}${hrClass}" style="height: ${height}px; width: ${width}%" ${powerAttr} ${hrAttr} ${cadenceAttr} ${slopeAttr} ${durationAttr}></div>`;
     }, `<div class="graph--bar-group" style="width: ${width}px;">`) + `</div>`;
 }
 
@@ -76,6 +81,7 @@ function renderInfo(args = {}) {
     const power    = exists(args.power)    ? `${args.power}W `: '';
     const cadence  = exists(args.cadence)  ? `${args.cadence}rpm `: '';
     const slope    = exists(args.slope)    ? `${toFixed(args.slope, 2)}%` : '';
+    const heartRate = exists(args.heartRate) ? `${args.heartRate}bpm `: '';
     const duration = exists(args.duration) ? `${args.duration}min `: '';
     const distance = exists(args.distance) ? `${args.distance}m `: '';
     const dom      = args.dom;
@@ -87,7 +93,7 @@ function renderInfo(args = {}) {
     const bottom       = args.intervalRect.height;
 
     dom.info.style.display = 'block';
-    dom.info.innerHTML = `<div>${power}</div><div>${cadence}</div><div>${slope}</div><div class="graph--info--time">${duration}</div>`;
+    dom.info.innerHTML = `<div>${power}${heartRate}</div><div>${cadence}</div><div>${slope}</div><div class="graph--info--time">${duration}</div>`;
 
     const width  = dom.info.getBoundingClientRect().width;
     const height = dom.info.getBoundingClientRect().height;
@@ -180,10 +186,12 @@ class WorkoutGraph extends HTMLElement {
             const slope        = target.getAttribute('slope');
             const duration     = target.getAttribute('duration');
             const distance     = target.getAttribute('distance');
+            const heartRate    = target.getAttribute('heart-rate');
             const intervalRect = target.getBoundingClientRect();
 
             this.renderInfo({
                 power,
+                heartRate,
                 cadence,
                 slope,
                 duration,
