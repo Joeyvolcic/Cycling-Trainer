@@ -165,3 +165,44 @@ describe('quick start', () => {
         expect(todaysPlanned([])).toBeUndefined();
     });
 });
+
+describe('settings: integrations sections', () => {
+    const { start, openSection, STORAGE_KEY: OPEN_KEY } = require('../../src/integrations/ui/settings-sections.js');
+    const { xf } = require('../../src/functions.js');
+
+    function markup() {
+        document.body.innerHTML = `
+            <div id="integrations-settings">
+                <details class="integration-section" data-section="ai">
+                    <summary>AI</summary><section id="ai-settings"></section>
+                </details>
+                <details class="integration-section" data-section="analysis">
+                    <summary>Analysis</summary><section id="analysis-settings"></section>
+                </details>
+            </div>`;
+    }
+
+    beforeEach(() => window.localStorage.clear());
+
+    test('restores and remembers open sections', () => {
+        window.localStorage.setItem(OPEN_KEY, JSON.stringify(['analysis']));
+        markup();
+        start();
+        const [ai, analysis] = document.querySelectorAll('details');
+        expect(ai.open).toBe(false);
+        expect(analysis.open).toBe(true);
+
+        ai.open = true;
+        ai.dispatchEvent(new Event('toggle'));
+        expect(JSON.parse(window.localStorage.getItem(OPEN_KEY)).sort()).toEqual(['ai', 'analysis']);
+    });
+
+    test('ui:settings:open opens a section by name or by settings id', () => {
+        markup();
+        start();
+        xf.dispatch('ui:settings:open', 'analysis');
+        expect(document.querySelector('[data-section="analysis"]').open).toBe(true);
+        expect(openSection('ai-settings', {scroll: false})?.dataset.section).toBe('ai');
+        expect(openSection('nope', {scroll: false})).toBe(null);
+    });
+});

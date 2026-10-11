@@ -801,3 +801,87 @@ body[data-focus="expanded"] .focus-toggle--expand { display: none; }
 @media (prefers-reduced-motion: reduce) {
     body #home-page.active { transition: none !important; }
 }
+
+/* ------------------------------------------------------------------ */
+/* Settings page: Integrations (collapsible sections)                   */
+/* markup: index.html #integrations-settings,                           */
+/* open state: src/integrations/ui/settings-sections.js                 */
+/* ------------------------------------------------------------------ */
+.integrations-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6em;
+}
+.integration-section {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--background-color);
+}
+.integration-section--summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.2em 1em;
+    min-height: 48px;
+    padding: 0.5em 2.8em 0.5em 1em;
+    position: relative;
+    list-style: none;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+}
+.integration-section--summary::-webkit-details-marker { display: none; }
+.integration-section--summary::after {
+    content: '';
+    position: absolute;
+    right: 1.2em;
+    top: 50%;
+    width: 0.55em;
+    height: 0.55em;
+    border-right: 2px solid var(--foreground-color-inactive);
+    border-bottom: 2px solid var(--foreground-color-inactive);
+    transform: translateY(-70%) rotate(45deg);
+    transition: transform 0.15s ease;
+}
+.integration-section[open] > .integration-section--summary::after {
+    transform: translateY(-30%) rotate(-135deg);
+}
+.integration-section--summary:focus-visible {
+    outline: 2px solid var(--foreground-color);
+    outline-offset: 2px;
+}
+.integration-section--title {
+    font-size: 1.05em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.integration-section--hint {
+    font-size: 0.85em;
+    color: var(--foreground-color-inactive);
+}
+.integration-section--body {
+    padding: 0 0.75em 1em;
+    border-top: 1px solid var(--border-color);
+}
+/* the summary is the section heading: hide the modules' own top headings */
+.integration-section--body #ai-settings .ai-settings > .list--sub-heading:first-child,
+.integration-section--body #calendar-settings calendar-settings > h2.page--heading,
+.integration-section--body #analysis-settings x-analysis-settings > h2.page--heading:first-child,
+.integration-section--body #media-settings x-media-settings > .settings-tile--label:first-child {
+    display: none;
+}
+/* these were styled as stand-alone blocks; inside a section, fill it */
+.integration-section--body #hr-control-settings {
+    margin: 0.75em 0 0;
+    padding: 0;
+    max-width: none;
+}
+.integration-section--body #analysis-settings {
+    margin: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+    .integration-section--summary::after { transition: none; }
+}

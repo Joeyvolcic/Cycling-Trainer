@@ -120,7 +120,7 @@ class AnalysisReport extends HTMLElement {
             this.close();
             xf.dispatch('ui:page-set', 'settings');
             xf.dispatch('action:nav', 'settings:settings');
-            setTimeout(() => document.getElementById('analysis-settings')?.scrollIntoView({behavior: 'smooth'}), 100);
+            xf.dispatch('ui:settings:open', 'analysis'); // opens the collapsed section and scrolls to it
         }
     }
     selectedServices() {
@@ -464,6 +464,7 @@ class AnalysisSettings extends HTMLElement {
             settings.set(settings.Keys.maxHr, this.val('an-max-hr'));
             settings.set(settings.Keys.lthr, this.val('an-lthr'));
             this.message = 'Heart-rate settings saved.';
+            xf.dispatch('analysis:settings', 'athlete'); // HR mode targets use LTHR too
         }
         this.render();
     }
