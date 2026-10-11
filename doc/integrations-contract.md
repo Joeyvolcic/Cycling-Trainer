@@ -39,3 +39,8 @@ Shared conventions so features built in parallel slot together. Keep this file c
   State: `db.heartRateTarget` (bpm), events `ui:heart-rate-target-set|inc|dec`; status broadcast as `hr-control:status`
   `{active, status, power, target, smoothedHr, message}`. Workout steps may carry `heartRate` (bpm), parsed from zwo
   `HeartRate` / `OnHeartRate` / `OffHeartRate` attributes. Settings in `localStorage['hr-control:*']`.
+- Calendar: `src/integrations/calendar/calendar.js` exports
+  `async scheduleEntries(entries, prefs?, options?)` -> `[{entryId, date, time, start, end, shiftedDays, hard, warnings, reason?}]`
+  (pure core in `scheduler.js`; uses Google free/busy when connected), `syncAll()`, `exportIcs()`.
+  Sync writes `calendarEventId` (and `date` when a ride had to be moved) via `updateEntry`.
+  Deep links `?workout=<id>` / `?planEntry=<id>&plan=<id>` are routed by `src/models/api.js` as xf event `app:deeplink`.
