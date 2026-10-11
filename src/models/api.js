@@ -96,6 +96,14 @@ function Router(args = {}) {
             xf.dispatch('action:auth', ':password:reset');
             return true;
         }
+        // deep links from calendar events: ?workout=<id> / ?planEntry=<id>&plan=<id>
+        const workout   = params.get('workout');
+        const planEntry = params.get('planEntry');
+        if(!error && (workout || planEntry)) {
+            xf.dispatch('app:deeplink', {workout, planEntry, plan: params.get('plan')});
+            clearParams();
+            return true;
+        }
         // clearParams();
         return false;
     }

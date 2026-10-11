@@ -5,6 +5,8 @@ import './ble/devices.js';
 import './watch.js';
 import './course.js';
 import './lock.js';
+import './integrations/calendar/calendar.js';
+import './integrations/calendar/settings-view.js';
 
 function startServiceWorker() {
     if('serviceWorker' in navigator) {

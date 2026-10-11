@@ -26,3 +26,8 @@ Shared conventions so features built in parallel slot together. Keep this file c
   Dispatches `xf` event `plans:changed`.
 - Wellness/recovery: `src/integrations/ai/wellness.js` exports `async getWellness(date)` -> `{sleepScore?, sleepHours?, hrv?, restingHR?, readiness?, source}` (intervals.icu wellness first).
 - Ride summary for analysis: `src/integrations/analysis/summary.js` exports `summarizeActivity(activity)` -> plain JSON (duration, avg/NP power, HR stats, time-in-zone, interval compliance).
+- Calendar: `src/integrations/calendar/calendar.js` exports
+  `async scheduleEntries(entries, prefs?, options?)` -> `[{entryId, date, time, start, end, shiftedDays, hard, warnings, reason?}]`
+  (pure core in `scheduler.js`; uses Google free/busy when connected), `syncAll()`, `exportIcs()`.
+  Sync writes `calendarEventId` (and `date` when a ride had to be moved) via `updateEntry`.
+  Deep links `?workout=<id>` / `?planEntry=<id>&plan=<id>` are routed by `src/models/api.js` as xf event `app:deeplink`.
