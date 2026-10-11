@@ -75,6 +75,120 @@ describe('zwo heart rate targets', () => {
         expect(removeWhiteSpace(zwo.body.write(res.body)))
             .toBe(removeWhiteSpace('<workout><SteadyState Duration="600" HeartRate="135" /></workout>'));
     });
+
+    test('HeartRate <= 2 is kept as a fraction of LTHR', () => {
+        const res = zwo.readToInterval(workoutFile(`
+            <SteadyState Duration="600" HeartRate="0.85"/>
+            <IntervalsT Repeat="1" OnDuration="60" OffDuration="60" OnHeartRate="0.95" OffHeartRate="0.7"/>
+        `));
+        expect(res.intervals).toEqual([
+            {duration: 600, steps: [{duration: 600, heartRate: 0.85}]},
+            {duration: 60, steps: [{duration: 60, heartRate: 0.95}]},
+            {duration: 60, steps: [{duration: 60, heartRate: 0.7}]},
+        ]);
+    });
+
+    test('Warmup with a bpm heart rate ramp (no power)', () => {
+        const res = zwo.readToInterval(workoutFile(`
+            <Warmup Duration="40" HeartRateLow="100" HeartRateHigh="130"/>
+        `));
+        expect(res.intervals).toEqual([
+            {duration: 40, steps: [
+                {duration: 10, heartRate: 100},
+                {duration: 10, heartRate: 110},
+                {duration: 10, heartRate: 120},
+                {duration: 10, heartRate: 130},
+            ]},
+        ]);
+    });
+
+    test('Warmup with power and an LTHR-relative heart rate ramp', () => {
+        const res = zwo.readToInterval(workoutFile(`
+            <Warmup Duration="30" PowerLow="0.5" PowerHigh="0.7" HeartRateLow="0.7" HeartRateHigh="0.8"/>
+        `));
+        expect(res.intervals).toEqual([
+            {duration: 30, steps: [
+                {duration: 10, power: 0.5, heartRate: 0.7},
+                {duration: 10, power: 0.6, heartRate: 0.75},
+                {duration: 10, power: 0.7, heartRate: 0.8},
+            ]},
+        ]);
+    });
+
+    test('Cooldown heart rate ramp goes from HeartRateLow (start) to HeartRateHigh (end)', () => {
+        const res = zwo.readToInterval(workoutFile(`
+            <Cooldown Duration="30" HeartRateLow="140" HeartRateHigh="110"/>
+        `));
+        expect(res.intervals).toEqual([
+            {duration: 30, steps: [
+                {duration: 10, heartRate: 140},
+                {duration: 10, heartRate: 125},
+                {duration: 10, heartRate: 110},
+            ]},
+        ]);
+    });
+
+    test('flat HeartRate on a Warmup and mixed units are handled', () => {
+        const flat = zwo.readToInterval(workoutFile(`
+            <Warmup Duration="20" PowerLow="0.4" PowerHigh="0.6" HeartRate="120"/>
+        `));
+        expect(flat.intervals[0].steps.map(s => s.heartRate)).toEqual([120, 120]);
+
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const mixed = zwo.readToInterval(workoutFile(`
+            <Warmup Duration="20" PowerLow="0.4" PowerHigh="0.6" HeartRateLow="0.7" HeartRateHigh="140"/>
+        `));
+        expect(mixed.intervals[0].steps.every(s => s.heartRate === undefined)).toBe(true);
+        warn.mockRestore();
+    });
+
+    test('writes heart rate ramps back to zwo', () => {
+        const meta = {author: 'Flux', name: 'HR', category: 'Endurance', subcategory: '',
+                      sportType: 'bike', description: 'HR'};
+        const warmup = zwo.readToInterval(workoutFile(`
+            <Warmup Duration="30" PowerLow="0.5" PowerHigh="0.7" HeartRateLow="0.7" HeartRateHigh="0.8"/>
+        `));
+        const res = zwo.fromInterval({meta, intervals: warmup.intervals});
+        expect(res.body).toEqual([{element: 'Warmup', Duration: 30, PowerLow: 0.5, PowerHigh: 0.7,
+                                   HeartRateLow: 0.7, HeartRateHigh: 0.8}]);
+    });
+});
+
+describe('heart rate targets relative to LTHR', () => {
+    const { toBpm, toLthrPct, formatHeartRate, isRelativeHeartRate, athlete } =
+          require('../../src/integrations/hr-control/targets.js');
+
+    afterEach(() => window.localStorage.clear());
+
+    test('values <= 2 are a fraction of LTHR, > 2 are bpm', () => {
+        expect(isRelativeHeartRate(0.85)).toBe(true);
+        expect(isRelativeHeartRate(2)).toBe(true);
+        expect(isRelativeHeartRate(135)).toBe(false);
+        expect(toBpm(0.85, {lthr: 170})).toBe(145);
+        expect(toBpm(135, {lthr: 170})).toBe(135);
+        expect(toBpm(135.4, {lthr: null})).toBe(135);
+    });
+
+    test('a relative target without LTHR cannot be resolved', () => {
+        expect(toBpm(0.85, {lthr: null})).toBe(null);
+        expect(toBpm(0, {lthr: 170})).toBe(null);
+        expect(toBpm(undefined, {lthr: 170})).toBe(null);
+    });
+
+    test('LTHR comes from the analysis settings', () => {
+        expect(athlete().lthr).toBe(null);
+        window.localStorage.setItem('analysis:lthr', '160');
+        window.localStorage.setItem('analysis:max-hr', '190');
+        expect(athlete()).toEqual({lthr: 160, maxHr: 190});
+        expect(toBpm(0.9)).toBe(144);
+        expect(toLthrPct(144)).toBe(90);
+    });
+
+    test('labels', () => {
+        expect(formatHeartRate(135, {lthr: 170})).toBe('135bpm');
+        expect(formatHeartRate(0.85, {lthr: 170})).toBe('85% LTHR (145bpm)');
+        expect(formatHeartRate(0.85, {lthr: null})).toBe('85% LTHR');
+    });
 });
 
 describe('HrControlRuntime', () => {

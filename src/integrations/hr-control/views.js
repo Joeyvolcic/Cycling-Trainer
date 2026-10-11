@@ -2,6 +2,8 @@ import { xf, equals } from '../../functions.js';
 import { ControlMode } from '../../ble/enums.js';
 import { HrControlStatus } from './controller.js';
 import { settings } from './settings.js';
+import { athlete, toBpm, toLthrPct } from './targets.js';
+import * as analysisSettings from '../analysis/settings.js';
 
 const warningStatuses = [
     HrControlStatus.signalLost,
@@ -24,14 +26,23 @@ class HrTargetControl extends HTMLElement {
         this.$status = this.querySelector('.hr-control--status');
         this.$power  = this.querySelector('.hr-control--power');
         this.$msg    = this.querySelector('.hr-control--message');
+        this.$lthr   = this.querySelector('.hr-control--lthr');
+        this.target  = 0;
 
         this.$inc.addEventListener('pointerup', () => xf.dispatch('ui:heart-rate-target-inc'), signal);
         this.$dec.addEventListener('pointerup', () => xf.dispatch('ui:heart-rate-target-dec'), signal);
         this.$input.addEventListener('change', e => {
-            xf.dispatch('ui:heart-rate-target-set', parseInt(e.target.value));
+            // bpm, or a fraction of LTHR (e.g. 0.85) when LTHR is set
+            const bpm = toBpm(parseFloat(e.target.value));
+            if(bpm !== null) {
+                xf.dispatch('ui:heart-rate-target-set', bpm);
+            } else {
+                this.onTarget(this.target);
+            }
         }, signal);
 
         xf.sub('db:heartRateTarget', this.onTarget.bind(this), signal);
+        xf.sub('analysis:settings', () => this.renderLthr(), signal);
         xf.sub('hr-control:status', this.onStatus.bind(this), signal);
         xf.dispatch('hr-control:status:request');
     }
@@ -39,7 +50,14 @@ class HrTargetControl extends HTMLElement {
         this.abortController.abort();
     }
     onTarget(value) {
+        this.target = value;
         this.$input.value = value > 0 ? value : '';
+        this.renderLthr();
+    }
+    renderLthr() {
+        if(!this.$lthr) return;
+        const pct = toLthrPct(this.target);
+        this.$lthr.textContent = pct === null ? '' : `${pct}% LTHR`;
     }
     onStatus(status) {
         const warning = warningStatuses.includes(status.status);
@@ -89,7 +107,10 @@ class HeartRateGroup extends HTMLElement {
 customElements.define('heart-rate-group', HeartRateGroup);
 
 //
-// <hr-control-settings>: max power (% FTP) and max HR ceiling.
+// <hr-control-settings>: max power (% FTP) and max HR ceiling, plus the
+// athlete's LTHR / max HR. Those two are stored with the ride analysis settings
+// ('analysis:lthr', 'analysis:max-hr'), the single source of truth for HR zones
+// and for workout HR targets written as a fraction of LTHR.
 //
 class HrControlSettings extends HTMLElement {
     connectedCallback() {
@@ -99,16 +120,28 @@ class HrControlSettings extends HTMLElement {
         this.$maxPower = this.querySelector('.hr-settings--max-power');
         this.$maxHr    = this.querySelector('.hr-settings--max-hr');
         this.$save     = this.querySelector('.hr-settings--save');
+        this.$lthr     = this.querySelector('.hr-settings--lthr');
+        this.$athleteMaxHr = this.querySelector('.hr-settings--athlete-max-hr');
 
         this.render(settings.load());
 
         this.$save.addEventListener('pointerup', this.onSave.bind(this), signal);
         xf.sub('hr-control:settings', this.render.bind(this), signal);
+        xf.sub('analysis:settings', () => this.renderAthlete(), signal);
     }
     disconnectedCallback() {
         this.abortController.abort();
     }
     onSave() {
+        if(this.$lthr || this.$athleteMaxHr) {
+            const int = el => {
+                const v = parseInt(el?.value);
+                return Number.isFinite(v) && v > 0 ? v : '';
+            };
+            if(this.$lthr) analysisSettings.set(analysisSettings.Keys.lthr, int(this.$lthr));
+            if(this.$athleteMaxHr) analysisSettings.set(analysisSettings.Keys.maxHr, int(this.$athleteMaxHr));
+            xf.dispatch('analysis:settings', 'athlete');
+        }
         settings.save({
             maxPowerPct: this.$maxPower.value,
             maxHr:       this.$maxHr.value === '' ? 0 : this.$maxHr.value,
@@ -117,6 +150,12 @@ class HrControlSettings extends HTMLElement {
     render(values) {
         this.$maxPower.value = values.maxPowerPct;
         this.$maxHr.value    = values.maxHr > 0 ? values.maxHr : '';
+        this.renderAthlete();
+    }
+    renderAthlete() {
+        const a = athlete();
+        if(this.$lthr) this.$lthr.value = a.lthr ?? '';
+        if(this.$athleteMaxHr) this.$athleteMaxHr.value = a.maxHr ?? '';
     }
 }
 

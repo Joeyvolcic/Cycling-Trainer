@@ -2,6 +2,7 @@ import { xf, exists, existance, equals, clamp, debounce, toFixed  } from '../fun
 import { formatTime, translate } from '../utils.js';
 import { models } from '../models/models.js';
 import { g } from './graph.js';
+import { formatHeartRate } from '../integrations/hr-control/targets.js';
 
 
 
@@ -48,7 +49,7 @@ function Interval(acc, interval, width, ftp, powerMax, viewPort) {
         const infoTime = formatTime({value: duration, format: 'mm:ss'});
 
         const powerAttr    = exists(step.power) || !exists(heartRate) ? `power="${power}"` : '';
-        const hrAttr       = exists(heartRate) ? `heart-rate="${heartRate}"` : '';
+        const hrAttr       = exists(heartRate) ? `heart-rate="${formatHeartRate(heartRate)}"` : '';
         const hrClass      = exists(heartRate) ? ' graph--bar--hr' : '';
         const cadenceAttr  = exists(cadence)  ? `cadence="${cadence}"` : '';
         const slopeAttr    = exists(slope)    ? `slope="${slope}"` : '';
@@ -81,7 +82,7 @@ function renderInfo(args = {}) {
     const power    = exists(args.power)    ? `${args.power}W `: '';
     const cadence  = exists(args.cadence)  ? `${args.cadence}rpm `: '';
     const slope    = exists(args.slope)    ? `${toFixed(args.slope, 2)}%` : '';
-    const heartRate = exists(args.heartRate) ? `${args.heartRate}bpm `: '';
+    const heartRate = exists(args.heartRate) ? `${args.heartRate} `: '';
     const duration = exists(args.duration) ? `${args.duration}min `: '';
     const distance = exists(args.distance) ? `${args.distance}m `: '';
     const dom      = args.dom;
