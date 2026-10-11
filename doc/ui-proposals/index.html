@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ride Layout Proposals</title>
+<meta name="description" content="Static mockups of three workout layouts (Banner, Split, Focus) for the Auuki/Flux indoor cycling app, on iPad, phone and desktop.">
+<style>
+/* ===================================================================== */
+/* Page chrome                                                           */
+/* ===================================================================== */
+:root {
+    --page-bg: #f4f4f6;
+    --page-fg: #1d1d22;
+    --page-muted: #666670;
+    --page-card: #ffffff;
+    --page-line: #d9d9e0;
+    --page-accent: #2f6fe4;
+    --page-accent-fg: #ffffff;
+    color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --page-bg: #18181c;
+        --page-fg: #ececf1;
+        --page-muted: #9a9aa6;
+        --page-card: #222228;
+        --page-line: #34343c;
+        --page-accent: #5b8ff0;
+        --page-accent-fg: #0d0d10;
+        color-scheme: dark;
+    }
+}
+:root[data-theme="dark"] {
+    --page-bg: #18181c;
+    --page-fg: #ececf1;
+    --page-muted: #9a9aa6;
+    --page-card: #222228;
+    --page-line: #34343c;
+    --page-accent: #5b8ff0;
+    --page-accent-fg: #0d0d10;
+    color-scheme: dark;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--page-bg);
+    color: var(--page-fg);
+    line-height: 1.45;
+    padding: 0 16px 48px;
+}
+button { font: inherit; color: inherit; }
+.page-head { max-width: 1400px; margin: 0 auto; padding: 24px 0 8px; }
+.page-head h1 { font-size: 1.6rem; letter-spacing: -0.01em; }
+.page-head p { color: var(--page-muted); max-width: 72ch; margin-top: 4px; }
+
+.toolbar {
+    position: sticky; top: 0; z-index: 10;
+    max-width: 1400px; margin: 12px auto 16px;
+    display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center;
+    padding: 10px 12px;
+    background: var(--page-card);
+    border: 1px solid var(--page-line);
+    border-radius: 12px;
+}
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.seg-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--page-muted); margin-right: 4px; }
+.seg button {
+    min-height: 40px; padding: 0 12px; border-radius: 8px;
+    border: 1px solid var(--page-line); background: transparent; cursor: pointer;
+    font-size: 0.9rem;
+}
+.seg button[aria-pressed="true"] { background: var(--page-accent); color: var(--page-accent-fg); border-color: var(--page-accent); }
+
+.stage { max-width: 1400px; margin: 0 auto; }
+.stage.all { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 20px; }
+.stage.one { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 340px); gap: 20px; align-items: start; }
+@media (max-width: 900px) { .stage.one { grid-template-columns: minmax(0, 1fr); } }
+
+.proposal { background: var(--page-card); border: 1px solid var(--page-line); border-radius: 14px; padding: 14px; min-width: 0; }
+.proposal h2 { font-size: 1.1rem; }
+.proposal .tag { display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: var(--page-accent); color: var(--page-accent-fg); margin-right: 6px; vertical-align: 2px; }
+.proposal .sub { color: var(--page-muted); font-size: 0.9rem; margin: 2px 0 10px; }
+.notes { font-size: 0.9rem; }
+.notes h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--page-muted); margin: 12px 0 4px; }
+.notes ul { padding-left: 1.1em; }
+.notes li { margin: 2px 0; }
+.legibility { margin-top: 8px; font-size: 0.8rem; color: var(--page-muted); font-variant-numeric: tabular-nums; }
+.side { position: sticky; top: 84px; }
+
+/* device frame + scaling */
+.frame-wrap { position: relative; width: 100%; }
+.frame {
+    position: absolute; top: 0; left: 0;
+    transform-origin: 0 0;
+    border-radius: 28px;
+    padding: 14px;
+    background: #0b0b0d;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25), inset 0 0 0 2px #2a2a30;
+}
+.frame.desktop { border-radius: 10px; padding: 10px; }
+.frame.phone { border-radius: 44px; padding: 12px; }
+
+/* ===================================================================== */
+/* Mock app (inside .screen, a size container)                           */
+/* ===================================================================== */
+.screen {
+    container: scr / size;
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    font-family: Roboto, system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+}
+.frame.desktop .screen { border-radius: 4px; }
+.frame.phone .screen { border-radius: 34px; }
+
+.screen[data-theme="dark"] {
+    --bg: #28272D; --bg2: #35363a; --fg: #ffffff; --muted: #aaaaaa; --line: rgba(255,255,255,0.1);
+    --chip: rgba(255,255,255,0.08); --input: #ffffff; --input-fg: #000;
+}
+.screen[data-theme="light"] {
+    --bg: #ffffff; --bg2: #ebebeb; --fg: #28272D; --muted: #7a7a80; --line: rgba(0,0,0,0.1);
+    --chip: rgba(0,0,0,0.06); --input: #ffffff; --input-fg: #000;
+}
+.screen { --green: #40FF70; --red: #FF495F; --yellow: #F8C73A; --blue: #328AFF;
+          --z1: #636468; --z2: #328AFF; --z3: #57C057; --z4: #F8C73A; --z5: #FF663A; --z6: #FE340B; }
+
+.app { position: absolute; inset: 0; display: grid; grid-template-columns: minmax(0,1fr); }
+
+/* bottom bar */
+.bar {
+    display: grid; grid-template-columns: minmax(0,1fr) auto auto; align-items: center;
+    border-top: 1px solid var(--line); background: var(--bg); height: 68px;
+}
+.bar .wname { font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 0 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; }
+.bar .ctl { display: flex; gap: 6px; padding: 0 8px; }
+.bar .ctl button, .bar .menu button {
+    min-width: 48px; min-height: 48px; border: none; background: transparent; color: var(--fg);
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; font-size: 13px;
+}
+.bar .menu { display: flex; border-left: 1px solid var(--line); height: 100%; align-items: center; padding: 0 6px; }
+.bar .menu button { color: var(--muted); padding: 0 10px; }
+.bar .menu button.on { color: var(--fg); font-weight: 700; }
+.ico { width: 26px; height: 26px; fill: currentColor; }
+.bar .menu .ico { width: 20px; height: 20px; }
+
+/* workout area */
+.workout {
+    position: relative; min-height: 0; overflow: hidden; display: grid;
+    grid-template-columns: minmax(0,1fr) minmax(240px, 34%);
+    grid-template-rows: 48px minmax(0,1fr) minmax(56px, 22%);
+    grid-template-areas: "conn conn" "tiles tiles" "graph targets";
+    border-bottom: 1px solid var(--line);
+}
+.conn { grid-area: conn; display: flex; align-items: center; gap: 4px; padding: 0 8px; background: var(--bg2); font-size: 14px; }
+.conn .sw { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 999px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+.conn .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--green); }
+.conn .dot.off { background: var(--red); }
+.conn .lay { margin-left: auto; color: var(--muted); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; display: inline-flex; gap: 8px; align-items: center; min-height: 44px; padding: 0 10px; }
+
+.tiles {
+    grid-area: tiles; min-height: 0; display: grid; background: var(--bg2);
+    grid-template-columns: repeat(6, minmax(0,1fr)); grid-template-rows: minmax(0,1fr); align-items: center;
+    --v: clamp(28px, min(5.2cqw, 9cqh), 96px);
+    --h: clamp(11px, 1.6cqh, 16px);
+}
+.tile { text-align: center; min-width: 0; overflow: hidden; }
+.tile .h { font-size: var(--h); color: var(--muted); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; margin-bottom: 0.2em; }
+.tile .v { font-size: var(--v); font-weight: 700; line-height: 1; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tile.elapsed .v { font-size: calc(var(--v) * 0.62); }
+.tile .u { font-size: 0.35em; color: var(--muted); margin-left: 0.1em; font-weight: 400; }
+.tile.power .v { color: var(--zone-color, var(--fg)); }
+.tile.interval .v.soon { color: var(--yellow); }
+.tile .next { font-size: var(--h); color: var(--muted); margin-top: 0.3em; white-space: nowrap; }
+
+.graph { grid-area: graph; position: relative; min-height: 0; border-top: 1px solid var(--line); }
+.graph .gname { position: absolute; top: 2px; left: 0; right: 0; text-align: center; font-size: 12px; font-weight: 700; z-index: 1; }
+.graph svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+.targets { grid-area: targets; display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 8px; align-items: center; padding: 0 8px; border-top: 1px solid var(--line); }
+.modes { display: flex; justify-content: space-evenly; }
+.modes button { min-height: 44px; padding: 0 6px; border: none; background: transparent; color: var(--muted); font-size: 12px; text-transform: uppercase; cursor: pointer; }
+.modes button.on { color: var(--fg); font-weight: 700; }
+.num { display: grid; grid-template-columns: 30% 40% 30%; height: 44px; }
+.num button { border: none; background: var(--bg2); color: var(--fg); font-size: 18px; cursor: pointer; }
+.num output { display: grid; place-items: center; background: var(--input); color: var(--input-fg); font-size: 18px; font-variant-numeric: tabular-nums; }
+
+.focus-btn { display: none; }
+
+/* dock */
+.dock { min-height: 0; display: grid; grid-template-rows: auto minmax(0,1fr); background: var(--bg); }
+.dtabs { display: flex; gap: 6px; padding: 6px 8px; overflow-x: auto; scrollbar-width: none; }
+.dtabs button {
+    flex: 0 0 auto; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line);
+    background: transparent; color: var(--muted); font-weight: 700; font-size: 14px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center;
+}
+.dtabs button.on { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.dpanel { min-height: 0; overflow: auto; padding: 12px 14px; container: dpanel / inline-size; }
+
+/* panels */
+.p-music { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 16px; align-items: center; }
+.art { width: clamp(72px, 22cqw, 200px); aspect-ratio: 1; border-radius: 12px; background: conic-gradient(from 210deg, #ff5f6d, #ffc371, #47cf73, #328AFF, #b06ab3, #ff5f6d); }
+.p-music .t { font-size: clamp(16px, 4cqw, 26px); font-weight: 700; }
+.p-music .a { color: var(--muted); font-size: clamp(13px, 3cqw, 18px); }
+.prog { height: 6px; border-radius: 3px; background: var(--chip); margin: 12px 0 4px; overflow: hidden; }
+.prog i { display: block; height: 100%; width: 40%; background: var(--fg); }
+.times { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.pctl { display: flex; gap: 10px; margin-top: 8px; }
+.pctl button { min-width: 52px; min-height: 52px; border-radius: 999px; border: 1px solid var(--line); background: var(--chip); color: var(--fg); font-size: 18px; cursor: pointer; }
+.pctl button.big { min-width: 64px; background: var(--fg); color: var(--bg); }
+.queue { margin-top: 12px; display: grid; gap: 6px; font-size: 14px; }
+.queue div { display: flex; justify-content: space-between; padding: 8px 10px; border-radius: 8px; background: var(--chip); }
+
+.p-quiz .meta { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.p-quiz .q { font-size: clamp(18px, 4.6cqw, 32px); font-weight: 700; margin: 8px 0 14px; }
+.p-quiz .ans { font-size: clamp(15px, 3.4cqw, 22px); padding: 10px 12px; border-radius: 10px; background: var(--chip); margin-bottom: 12px; }
+.grade { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.grade button { min-height: 56px; border-radius: 10px; border: none; font-weight: 700; font-size: 15px; cursor: pointer; color: #111; }
+.grade .g1 { background: #ff8a8a; } .grade .g2 { background: #ffd27a; } .grade .g3 { background: #8fe3a2; } .grade .g4 { background: #8fbaff; }
+
+.p-coach { display: grid; gap: 10px; }
+.kpis { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; }
+.kpi { background: var(--chip); border-radius: 10px; padding: 8px 10px; }
+.kpi b { display: block; font-size: clamp(20px, 5cqw, 32px); font-variant-numeric: tabular-nums; }
+.kpi span { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.say { font-size: clamp(15px, 3.4cqw, 20px); padding: 10px 12px; border-left: 4px solid var(--blue); background: var(--chip); border-radius: 0 10px 10px 0; }
+
+.p-cal { display: grid; gap: 8px; }
+.ev { display: grid; grid-template-columns: 64px minmax(0,1fr); gap: 10px; padding: 10px; border-radius: 10px; background: var(--chip); font-size: 15px; }
+.ev time { color: var(--muted); font-variant-numeric: tabular-nums; }
+.ev.now { outline: 2px solid var(--green); }
+
+.p-pod .t { font-size: clamp(16px, 4cqw, 24px); font-weight: 700; }
+.p-pod .a { color: var(--muted); }
+
+/* ===================================================================== */
+/* Layouts                                                               */
+/* ===================================================================== */
+/* (A) Banner */
+.app.banner { grid-template-rows: clamp(200px, 36cqh, 340px) minmax(0,1fr) 68px; }
+
+/* (B) Split */
+.app.split { grid-template-rows: minmax(0,1fr) minmax(0,1fr) 68px; }
+.app.split .tiles { grid-template-columns: repeat(3, minmax(0,1fr)); grid-template-rows: repeat(2, minmax(0,1fr)); --v: clamp(30px, min(10cqw, 8cqh), 120px); }
+
+/* (C) Focus */
+.app.focus { grid-template-rows: minmax(0,36fr) minmax(0,64fr) 68px; transition: grid-template-rows 0.35s ease; }
+.app.focus.expanded { grid-template-rows: minmax(0,66fr) minmax(0,34fr) 68px; }
+.app.focus.expanded .tiles { grid-template-columns: repeat(3, minmax(0,1fr)); grid-template-rows: repeat(2, minmax(0,1fr)); --v: clamp(40px, min(10cqw, 11cqh), 150px); --h: clamp(12px, 2cqh, 20px); }
+.app.focus .focus-btn {
+    display: inline-flex; align-items: center; position: absolute; left: 8px; bottom: 8px; z-index: 2;
+    min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--fg);
+    font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+}
+.app.focus .tile .next { display: none; }
+.app.focus.expanded .tile .next { display: block; }
+
+/* Classic (current app) */
+.app.classic { grid-template-rows: 50px minmax(0, 2.5fr) minmax(0,1fr) minmax(0,1fr) 98px 68px; }
+.app.classic .workout { display: contents; }
+.app.classic .conn { grid-area: auto; justify-content: space-evenly; }
+.app.classic .conn .lay { margin-left: 0; }
+.app.classic .tiles { grid-area: auto; grid-template-columns: repeat(5, minmax(0,1fr)); grid-template-rows: repeat(2, minmax(0,1fr)); --v: clamp(26px, min(7cqw, 10cqh), 110px); }
+.app.classic .tile.extra { display: block; }
+.app.classic .graph { grid-area: auto; }
+.app.classic .graph.moxy { display: block; }
+.app.classic .targets { grid-area: auto; grid-template-columns: 1fr; max-width: 320px; margin: 0 auto; width: 100%; padding: 6px 0; gap: 4px; }
+.app.classic .dock { display: none; }
+.tile.extra, .graph.moxy { display: none; }
+
+/* --- landscape tablet+ : Split goes side by side --------------------- */
+@container scr (orientation: landscape) and (min-width: 900px) {
+    .app.split { grid-template-columns: minmax(0,1fr) minmax(0,1fr); grid-template-rows: minmax(0,1fr) 68px; }
+    .app.split .workout {
+        grid-template-columns: minmax(0,1fr); grid-template-rows: 48px minmax(0,1fr) minmax(64px, 20%) auto;
+        grid-template-areas: "conn" "tiles" "graph" "targets"; border-bottom: none; border-right: 1px solid var(--line);
+    }
+    .app.split .targets { padding-bottom: 6px; }
+    .app.split .tiles { grid-template-columns: repeat(2, minmax(0,1fr)); grid-template-rows: repeat(3, minmax(0,1fr)); --v: clamp(36px, min(7.5cqw, 9cqh), 120px); }
+    .app.split .bar { grid-column: 1 / -1; }
+}
+
+/* --- portrait: 3x2 tiles everywhere ---------------------------------- */
+@container scr (orientation: portrait) {
+    .tiles { grid-template-columns: repeat(3, minmax(0,1fr)); grid-template-rows: repeat(2, minmax(0,1fr)); --v: clamp(30px, min(10cqw, 8cqh), 120px); }
+    .app.banner { grid-template-rows: clamp(260px, 40cqh, 480px) minmax(0,1fr) 68px; }
+    .app.classic .tiles { grid-template-columns: repeat(3, minmax(0,1fr)); grid-template-rows: repeat(3, minmax(0,1fr)); --v: clamp(30px, min(12.5cqw, 9cqh), 120px); }
+}
+
+/* --- phones ---------------------------------------------------------- */
+@container scr (max-width: 599px) {
+    .workout { grid-template-columns: minmax(0,1fr); grid-template-rows: 44px minmax(0,1fr) minmax(48px, 14%) auto; grid-template-areas: "conn" "tiles" "graph" "targets"; }
+    .targets { padding-bottom: 6px; padding-top: 6px; }
+    .app.banner, .app.split, .app.focus, .app.classic { --barh: 120px; }
+    .app.banner { grid-template-rows: clamp(260px, 46cqh, 420px) minmax(0,1fr) 120px; }
+    .app.split { grid-template-rows: minmax(0,1fr) minmax(0,1fr) 120px; }
+    .app.focus { grid-template-rows: minmax(0,46fr) minmax(0,54fr) 120px; }
+    .app.focus.expanded { grid-template-rows: minmax(0,72fr) minmax(0,28fr) 120px; }
+    .app.classic { grid-template-rows: 44px minmax(0, 2.5fr) minmax(0,1fr) minmax(0,1fr) 110px 120px; }
+    .bar { height: auto; grid-template-columns: minmax(0,1fr) auto; grid-template-rows: 1fr 1fr; }
+    .bar .menu { grid-column: 1 / -1; border-left: none; border-top: 1px solid var(--line); justify-content: space-around; }
+    .bar .menu button { flex-direction: column; gap: 2px; font-size: 11px; }
+    .conn .lay span { display: none; }
+    .conn { font-size: 12px; }
+    .dpanel { padding: 10px; }
+}
+
+/* reduce motion */
+@media (prefers-reduced-motion: reduce) { .app.focus { transition: none; } }
+</style>
+</head>
+<body>
+
+<header class="page-head">
+    <h1>Ride layout proposals</h1>
+    <p>Three ways to give the workout part of the screen and the rest to integrations (music, podcasts, quiz, coach, calendar).
+       Mock data, simulated ride. Each mock is drawn at the device's real CSS-pixel size and scaled to fit, so the
+       legibility numbers under each one are accurate. These layouts can also be picked in the app: Settings &rsaquo; Options &rsaquo; Layout, or the layout button in the top bar.</p>
+</header>
+
+<div class="toolbar" role="toolbar" aria-label="Mockup controls">
+    <div class="seg" data-group="view"><span class="seg-label">Show</span>
+        <button data-value="all">All side by side</button>
+        <button data-value="banner">A · Banner</button>
+        <button data-value="split">B · Split</button>
+        <button data-value="focus">C · Focus</button>
+        <button data-value="classic">Current</button>
+    </div>
+    <div class="seg" data-group="device"><span class="seg-label">Device</span>
+        <button data-value="ipad-l">iPad landscape</button>
+        <button data-value="ipad-p">iPad portrait</button>
+        <button data-value="phone">Phone</button>
+        <button data-value="desktop">Desktop</button>
+    </div>
+    <div class="seg" data-group="theme"><span class="seg-label">Theme</span>
+        <button data-value="dark">Dark</button>
+        <button data-value="light">Light</button>
+    </div>
+    <div class="seg" data-group="speed"><span class="seg-label">Ride</span>
+        <button data-value="0">Pause</button>
+        <button data-value="1">1×</button>
+        <button data-value="10">10×</button>
+    </div>
+</div>
+
+<main id="stage" class="stage all"></main>
+
+<script>
+(function() {
+"use strict";
+
+// ------------------------------------------------------------------ data
+const DEVICES = {
+    'ipad-l':  {w: 1180, h: 820,  cls: 'tablet',  mmPerPx: 0.1924, name: 'iPad Air 11" landscape'},
+    'ipad-p':  {w: 820,  h: 1180, cls: 'tablet',  mmPerPx: 0.1924, name: 'iPad Air 11" portrait'},
+    'phone':   {w: 390,  h: 844,  cls: 'phone',   mmPerPx: 0.1834, name: 'iPhone 15'},
+    'desktop': {w: 1440, h: 900,  cls: 'desktop', mmPerPx: 0.2646, name: '1440×900 @96dpi'},
+};
+
+const PROPOSALS = {
+    banner: {
+        tag: 'A', name: 'Top banner',
+        sub: 'A fixed workout strip on top; integrations get the rest.',
+        pros: ['Most room for integrations (about 60% of an iPad screen)', 'Nothing moves while you ride, so it is easy to learn', 'Six numbers in one row can be read in a single glance'],
+        cons: ['On iPad landscape the numbers are about 61px, against about 82px in Classic', 'The mini interval graph is short, so the next intervals are less readable', 'Power average, speed, distance and SmO₂ are hidden'],
+    },
+    split: {
+        tag: 'B', name: 'Split',
+        sub: 'Half workout, half integrations: side by side in landscape, stacked in portrait.',
+        pros: ['Biggest numbers of the three in landscape (about 2×3 tiles at roughly 74px)', 'Feels like two apps side by side, which is good for watching video or slides', 'Same behaviour in every phase of the workout'],
+        cons: ['Integrations only get half the screen', 'In landscape the dock is narrow (about 590px), so wide panels need container queries', 'On a phone each half is cramped'],
+    },
+    focus: {
+        tag: 'C', name: 'Focus (auto)',
+        sub: 'A banner during steady intervals that expands automatically from 20 s before a change until 10 s after it, and whenever you are paused.',
+        pros: ['Large numbers exactly when they matter: interval changes, sprints, starting', 'Integrations get about 64% of the screen during long steady blocks', 'An Expand button pins the large view for 30 s'],
+        cons: ['The panel area moves, so you can miss a tap on a quiz answer at the moment it shrinks', 'Short-interval workouts (30/30s) stay expanded almost all the time', 'There is more logic to test, and the transitions need reduced-motion support'],
+    },
+    classic: {
+        tag: '—', name: 'Current (Classic)',
+        sub: 'Today’s full-screen data view; kept as the default.',
+        pros: ['Shows every metric at once', 'Familiar to existing users'],
+        cons: ['No room for integrations: the dock only appears if you scroll below the screen', 'The moxy graph and small tiles take space on every ride'],
+    },
+};
+
+const PANELS = [
+    {id: 'music', title: 'Music', icon: '♫'},
+    {id: 'pod',   title: 'Podcast', icon: '🎙'},
+    {id: 'quiz',  title: 'Quiz', icon: '?'},
+    {id: 'coach', title: 'Coach', icon: '✦'},
+    {id: 'cal',   title: 'Calendar', icon: '▦'},
+];
+
+// workout: [durationSec, targetWatts]
+const FTP = 250;
+const WORKOUT = (() => {
+    const w = [[300, 125], [300, 165], [120, 190]];
+    for(let i = 0; i < 5; i++) { w.push([180, 300]); w.push([120, 140]); }
+    w.push([300, 170], [240, 120]);
+    return w;
+})();
+const TOTAL = WORKOUT.reduce((a, [d]) => a + d, 0);
+
+const state = {
+    view: 'all', device: 'ipad-l',
+    theme: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
+    speed: 1,
+    t: 1930, // start mid-ride (in 4th hard interval)
+    hr: 148, power: 300,
+    tabs: {}, pinnedUntil: 0,
+};
+
+// ------------------------------------------------------------------ helpers
+const pad = n => String(n).padStart(2, '0');
+const mmss = s => `${pad(Math.floor(s / 60))}:${pad(Math.floor(s % 60))}`;
+const hhmmss = s => `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s % 3600 / 60))}:${pad(Math.floor(s % 60))}`;
+function intervalAt(t) {
+    let acc = 0;
+    for(let i = 0; i < WORKOUT.length; i++) {
+        const [d, p] = WORKOUT[i];
+        if(t < acc + d) return {i, start: acc, dur: d, target: p, left: acc + d - t, into: t - acc};
+        acc += d;
+    }
+    const [d, p] = WORKOUT[WORKOUT.length - 1];
+    return {i: WORKOUT.length - 1, start: TOTAL - d, dur: d, target: p, left: 0, into: d};
+}
+function zoneColor(watts) {
+    const r = watts / FTP;
+    if(r < 0.55) return 'var(--z1)'; if(r < 0.76) return 'var(--z2)'; if(r < 0.88) return 'var(--z3)';
+    if(r < 0.95) return 'var(--z4)'; if(r < 1.06) return 'var(--z5)'; return 'var(--z6)';
+}
+function focusExpanded(iv) {
+    if(state.pinnedUntil > Date.now()) return true;
+    if(state.speed === 0) return true; // paused
+    return iv.left <= 20 || iv.into < 10;
+}
+
+const ICON = {
+    pause: '<svg class="ico" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>',
+    play:  '<svg class="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',
+    skip:  '<svg class="ico" viewBox="0 0 24 24"><path d="M15 1H9v2h6V1zm-4 13h2V8h-2v6zm8.03-6.61l1.42-1.42c-.43-.51-.9-.99-1.41-1.41l-1.42 1.42C16.07 4.74 14.12 4 12 4c-4.97 0-9 4.03-9 9s4.02 9 9 9 9-4.03 9-9c0-2.12-.74-4.07-1.97-5.61zM12 20c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>',
+    set:   '<svg class="ico" viewBox="0 0 24 24"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7 7 0 0 0-1.7-1L15 3h-4l-.4 2.8a7 7 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7 7 0 0 0 1.7 1L11 21h4l.4-2.8a7 7 0 0 0 1.7-1l2.5 1 2-3.5L19.4 13zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>',
+    home:  '<svg class="ico" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>',
+    list:  '<svg class="ico" viewBox="0 0 24 24"><path d="M4 10h12v2H4zm0-4h12v2H4zm0 8h8v2H4zm10 0v6l5-3z"/></svg>',
+};
+
+// ------------------------------------------------------------------ panel content
+function panelHtml(id) {
+    switch(id) {
+    case 'music': return `
+        <div class="p-music">
+            <div class="art" aria-hidden="true"></div>
+            <div><div class="t">Midnight City</div><div class="a">M83 · Hurry Up, We're Dreaming</div>
+                 <div class="prog"><i></i></div><div class="times"><span>1:38</span><span>4:03</span></div>
+                 <div class="pctl"><button aria-label="Previous">⏮</button><button class="big" aria-label="Pause">⏸</button><button aria-label="Next">⏭</button></div></div>
+        </div>
+        <div class="queue"><div><span>Up next · Tycho — Awake</span><span>4:44</span></div><div><span>Bonobo — Kerala</span><span>4:30</span></div></div>`;
+    case 'pod': return `
+        <div class="p-pod"><div class="t">The Science of Sport — Ep. 212: Polarised vs threshold</div>
+        <div class="a">Episode · 58 min · 23 min left</div><div class="prog"><i style="width:60%"></i></div>
+        <div class="pctl"><button>−15</button><button class="big">⏸</button><button>+30</button><button>1.2×</button></div></div>`;
+    case 'quiz': return `
+        <div class="p-quiz"><div class="meta">Spanish · 12 due · streak 9</div>
+        <div class="q">“to struggle / to fight”</div><div class="ans">luchar</div>
+        <div class="grade"><button class="g1">Again</button><button class="g2">Hard</button><button class="g3">Good</button><button class="g4">Easy</button></div></div>`;
+    case 'coach': return `
+        <div class="p-coach"><div class="kpis"><div class="kpi"><b>78</b><span>Readiness</span></div><div class="kpi"><b>62<small> ms</small></b><span>HRV</span></div><div class="kpi"><b>7.4<small> h</small></b><span>Sleep</span></div></div>
+        <div class="say">Interval 4 of 5: you're holding 300 W at 4 bpm lower heart rate than last week. Keep your cadence above 90 and stay seated until the last 30 s.</div></div>`;
+    case 'cal': return `
+        <div class="p-cal"><div class="ev now"><time>18:00</time><span><b>Sweet-spot 5×3</b> · indoor (now)</span></div>
+        <div class="ev"><time>19:15</time><span>Dinner with Sam</span></div><div class="ev"><time>Tue</time><span>Recovery 45′ Z2 · planned</span></div><div class="ev"><time>Thu</time><span>VO₂ 6×2′ · planned</span></div></div>`;
+    }
+    return '';
+}
+
+// ------------------------------------------------------------------ app mock
+function graphSvg() {
+    let x = 0; let rects = '';
+    for(const [d, p] of WORKOUT) {
+        const w = d / TOTAL * 1000; const h = Math.min(1, p / (FTP * 1.3)) * 100;
+        rects += `<rect x="${x.toFixed(2)}" y="${(100 - h).toFixed(2)}" width="${(w - 1).toFixed(2)}" height="${h.toFixed(2)}" fill="${zoneColor(p)}"/>`;
+        x += w;
+    }
+    return `<svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">${rects}
+        <rect class="done" x="0" y="0" width="0" height="100" fill="rgba(128,128,128,0.35)"/>
+        <line class="now" x1="0" x2="0" y1="0" y2="100" stroke="#FF663A" stroke-width="3" vector-effect="non-scaling-stroke"/></svg>`;
+}
+
+function appHtml(layout) {
+    const tiles = `
+        <div class="tile extra"><div class="h">Power Lap</div><div class="v" data-k="plap">292</div></div>
+        <div class="tile power"><div class="h">Power</div><div class="v" data-k="power">300<span class="u">W</span></div></div>
+        <div class="tile"><div class="h">Target</div><div class="v" data-k="target">300</div><div class="next" data-k="next">next 140 W</div></div>
+        <div class="tile interval"><div class="h">Interval</div><div class="v" data-k="left">02:10</div><div class="next" data-k="ivn">4 / 5</div></div>
+        <div class="tile"><div class="h">Heart Rate</div><div class="v" data-k="hr">148</div></div>
+        <div class="tile"><div class="h">Cadence</div><div class="v" data-k="cad">92</div></div>
+        <div class="tile elapsed"><div class="h">Elapsed</div><div class="v" data-k="el">00:32:10</div></div>
+        <div class="tile extra"><div class="h">Speed</div><div class="v">34.2</div></div>
+        <div class="tile extra"><div class="h">Slope</div><div class="v">0.0</div></div>
+        <div class="tile extra"><div class="h">Distance</div><div class="v">18.4</div></div>`;
+    const layoutName = {classic: 'Classic', banner: 'Banner', split: 'Split', focus: 'Focus'}[layout];
+    return `
+    <div class="app ${layout}">
+        <section class="workout">
+            <header class="conn">
+                <span class="sw"><i class="dot"></i>Trainer</span>
+                <span class="sw"><i class="dot"></i>Heart Rate</span>
+                <span class="lay">▭ <span>${layoutName}</span></span>
+            </header>
+            <div class="tiles">${tiles}</div>
+            <div class="graph moxy"><div class="gname">Graph</div></div>
+            <div class="graph"><div class="gname">Sweet-spot 5×3</div>${graphSvg()}</div>
+            <div class="targets">
+                <div class="modes"><button class="on">ERG</button><button>Resist.</button><button>Slope</button></div>
+                <div class="num"><button aria-label="Decrease">−</button><output data-k="erg">300</output><button aria-label="Increase">+</button></div>
+            </div>
+            <button class="focus-btn" type="button">Expand</button>
+        </section>
+        <section class="dock">
+            <nav class="dtabs" role="tablist">${PANELS.map(p => `<button data-tab="${p.id}" role="tab">${p.icon} ${p.title}</button>`).join('')}</nav>
+            <div class="dpanel"></div>
+        </section>
+        <footer class="bar">
+            <div class="wname">Sweet-spot 5×3</div>
+            <div class="ctl"><button aria-label="Pause">${ICON.pause}</button><button aria-label="Lap">${ICON.skip}</button></div>
+            <nav class="menu"><button>${ICON.set}<span>Settings</span></button><button class="on">${ICON.home}<span>Home</span></button><button>${ICON.list}<span>Workouts</span></button></nav>
+        </footer>
+    </div>`;
+}
+
+// ------------------------------------------------------------------ rendering
+const stage = document.getElementById('stage');
+let screens = [];
+
+function card(layout, big) {
+    const p = PROPOSALS[layout];
+    const dev = DEVICES[state.device];
+    const el = document.createElement('article');
+    el.className = 'proposal';
+    el.innerHTML = `
+        <h2><span class="tag">${p.tag}</span>${p.name}</h2>
+        <p class="sub">${p.sub}</p>
+        <div class="frame-wrap"><div class="frame ${dev.cls}">
+            <div class="screen" data-theme="${state.theme}" style="width:${dev.w}px;height:${dev.h}px">${appHtml(layout)}</div>
+        </div></div>
+        <p class="legibility" data-legibility></p>
+        ${big ? '' : notesHtml(layout)}`;
+    const scr = el.querySelector('.screen');
+    const active = state.tabs[layout] ?? (layout === 'split' ? 'coach' : 'music');
+    selectTab(scr, active, layout);
+    scr.querySelector('.dtabs').addEventListener('click', e => {
+        const b = e.target.closest('[data-tab]'); if(!b) return;
+        state.tabs[layout] = b.dataset.tab; selectTab(scr, b.dataset.tab, layout);
+    });
+    scr.querySelector('.focus-btn').addEventListener('click', () => {
+        state.pinnedUntil = state.pinnedUntil > Date.now() ? 0 : Date.now() + 30000;
+        tick(0);
+    });
+    screens.push({layout, el, scr});
+    return el;
+}
+function notesHtml(layout) {
+    const p = PROPOSALS[layout];
+    return `<div class="notes"><h3>Pros</h3><ul>${p.pros.map(x => `<li>${x}</li>`).join('')}</ul>
+            <h3>Tradeoffs</h3><ul>${p.cons.map(x => `<li>${x}</li>`).join('')}</ul></div>`;
+}
+function selectTab(scr, id, layout) {
+    scr.querySelectorAll('.dtabs button').forEach(b => {
+        const on = b.dataset.tab === id; b.classList.toggle('on', on); b.setAttribute('aria-selected', on);
+    });
+    scr.querySelector('.dpanel').innerHTML = panelHtml(id);
+}
+
+function render() {
+    screens = [];
+    stage.innerHTML = '';
+    if(state.view === 'all') {
+        stage.className = 'stage all';
+        ['banner', 'split', 'focus'].forEach(l => stage.appendChild(card(l, false)));
+    } else {
+        stage.className = 'stage one';
+        stage.appendChild(card(state.view, true));
+        const side = document.createElement('aside');
+        side.className = 'proposal side';
+        side.innerHTML = `<h2>${PROPOSALS[state.view].name}</h2><p class="sub">${DEVICES[state.device].name}</p>${notesHtml(state.view)}`;
+        stage.appendChild(side);
+    }
+    fit();
+    tick(0);
+}
+
+function fit() {
+    for(const {el} of screens) {
+        const wrap = el.querySelector('.frame-wrap');
+        const frame = el.querySelector('.frame');
+        frame.style.transform = 'none';
+        const fw = frame.offsetWidth, fh = frame.offsetHeight;
+        const avail = wrap.clientWidth;
+        const maxH = Math.max(320, window.innerHeight - 200);
+        const s = Math.min(1, avail / fw, maxH / fh);
+        frame.style.transform = `scale(${s})`;
+        wrap.style.height = `${fh * s}px`;
+    }
+    legibility();
+}
+
+function legibility() {
+    const dev = DEVICES[state.device];
+    for(const {el, scr} of screens) {
+        const v = scr.querySelector('.tile.power .v');
+        const px = parseFloat(getComputedStyle(v).fontSize);
+        const cap = px * 0.71 * dev.mmPerPx; // Roboto cap height ≈ 0.71em
+        // ~7 mm cap height reads at a glance from 1 m (≈ 24 arcmin); 4 mm is the floor
+        const verdict = cap >= 7 ? 'glanceable at 1 m' : cap >= 4 ? 'readable at 1 m' : 'too small at 1 m';
+        el.querySelector('[data-legibility]').textContent =
+            `Power digits ${px.toFixed(0)}px ≈ ${cap.toFixed(1)} mm cap height on ${dev.name} → ${verdict}.`;
+    }
+}
+
+// ------------------------------------------------------------------ simulation
+function tick(dt) {
+    state.t = (state.t + dt) % TOTAL;
+    const iv = intervalAt(state.t);
+    const nextIv = WORKOUT[iv.i + 1];
+    const noise = (Math.sin(state.t * 1.7) + Math.sin(state.t * 0.37)) * 6;
+    state.power = Math.max(0, Math.round(iv.target + noise));
+    const hrTarget = 95 + iv.target * 0.19;
+    state.hr = Math.round(state.hr + (hrTarget - state.hr) * Math.min(1, dt * 0.05));
+    const cad = Math.round(90 + Math.sin(state.t * 0.5) * 3);
+    const hard = WORKOUT.slice(0, iv.i + 1).filter(([, p]) => p >= 250).length;
+
+    for(const {layout, scr} of screens) {
+        const q = k => scr.querySelector(`[data-k="${k}"]`);
+        q('power').innerHTML = `${state.power}<span class="u">W</span>`;
+        scr.querySelector('.tile.power').style.setProperty('--zone-color', zoneColor(state.power));
+        q('target').textContent = iv.target;
+        q('next').textContent = nextIv ? `next ${nextIv[1]} W` : 'last';
+        q('left').textContent = mmss(iv.left);
+        q('left').classList.toggle('soon', iv.left <= 10);
+        q('ivn').textContent = iv.target >= 250 ? `${hard} / 5` : '';
+        q('hr').textContent = state.hr;
+        q('cad').textContent = cad;
+        q('el').textContent = hhmmss(state.t);
+        q('erg').textContent = iv.target;
+        const frac = state.t / TOTAL * 1000;
+        scr.querySelector('.graph svg .done')?.setAttribute('width', frac);
+        scr.querySelectorAll('.graph svg .now').forEach(l => { l.setAttribute('x1', frac); l.setAttribute('x2', frac); });
+        if(layout === 'focus') {
+            const ex = focusExpanded(iv);
+            const app = scr.querySelector('.app');
+            if(app.classList.contains('expanded') !== ex) {
+                app.classList.toggle('expanded', ex);
+                setTimeout(legibility, 400);
+            }
+            scr.querySelector('.focus-btn').textContent = ex ? 'Collapse' : 'Expand';
+        }
+    }
+}
+
+let last = performance.now();
+let acc = 0;
+function loop(now) {
+    acc += (now - last) / 1000 * state.speed;
+    last = now;
+    if(acc >= 1) { const whole = Math.floor(acc); acc -= whole; tick(whole); }
+    requestAnimationFrame(loop);
+}
+
+// ------------------------------------------------------------------ toolbar
+function syncToolbar() {
+    document.querySelectorAll('.seg').forEach(seg => {
+        const g = seg.dataset.group;
+        seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(String(state[g]) === b.dataset.value)));
+    });
+    document.documentElement.dataset.theme = state.theme;
+}
+document.querySelector('.toolbar').addEventListener('click', e => {
+    const b = e.target.closest('button[data-value]'); if(!b) return;
+    const g = b.closest('.seg').dataset.group;
+    state[g] = g === 'speed' ? Number(b.dataset.value) : b.dataset.value;
+    syncToolbar();
+    if(g === 'theme') { screens.forEach(s => s.scr.dataset.theme = state.theme); return; }
+    if(g === 'speed') { tick(0); return; }
+    render();
+});
+let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(fit, 100); });
+
+syncToolbar();
+render();
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
