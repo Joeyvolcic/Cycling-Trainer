@@ -26,3 +26,8 @@ Shared conventions so features built in parallel slot together. Keep this file c
   Dispatches `xf` event `plans:changed`.
 - Wellness/recovery: `src/integrations/ai/wellness.js` exports `async getWellness(date)` -> `{sleepScore?, sleepHours?, hrv?, restingHR?, readiness?, source}` (intervals.icu wellness first).
 - Ride summary for analysis: `src/integrations/analysis/summary.js` exports `summarizeActivity(activity)` -> plain JSON (duration, avg/NP power, HR stats, time-in-zone, interval compliance).
+- Quiz (spaced repetition, `src/integrations/quiz/`): own IndexedDB database `flux-quiz` (stores `decks`, `cards`, `reviews`; does not touch the shared `store` DB),
+  settings in `localStorage['quiz:settings']`, last ride summary in `localStorage['quiz:last-ride']`.
+  Panel `x-quiz-panel` (registered with `element: 'x-quiz-panel'`, a tag name), manager `x-quiz-manager` in `#quiz-settings`, `x-quiz-ride-summary` in the ride report.
+  Reads `db:watchStatus`, `db:powerTarget`, `db:power3s`, `db:ftp`. Dispatches `quiz:changed`, `quiz:settings`, `quiz:state`,
+  and `quiz:ride-summary` -> `{reviewed, correct, start, end}` on ride stop (usable by analysis).
