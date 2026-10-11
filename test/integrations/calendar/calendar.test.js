@@ -2,12 +2,24 @@
  * @jest-environment jsdom
  */
 
+import indexedDB from 'fake-indexeddb';
 import { xf } from '../../../src/functions.js';
+import { idb } from '../../../src/storage/idb.js';
 import * as plans from '../../../src/integrations/plans/plans.js';
 import * as calendar from '../../../src/integrations/calendar/calendar.js';
 
+window.indexedDB = indexedDB;
+
 describe('calendar public api', () => {
-    beforeEach(() => localStorage.clear());
+    beforeAll(async () => {
+        await idb.start('calendar-test', 1, ['plans']);
+    });
+
+    beforeEach(async () => {
+        localStorage.clear();
+        await idb.clear('plans');
+        await plans.listPlans(); // refresh the in-memory cache
+    });
 
     test('scheduleEntries uses saved prefs merged with overrides (no google)', async () => {
         calendar.savePrefs({windows: {weekday: [{start: '18:00', end: '20:00'}]}});
@@ -46,7 +58,7 @@ describe('calendar public api', () => {
         expect(pages).toContain('home');
     });
 
-    test('plans stub implements the contract', async () => {
+    test('plans module implements the contract', async () => {
         await plans.savePlan({id: 'p', entries: [{id: 'e', date: '2026-10-13'}]});
         expect((await plans.listPlans()).length).toBe(1);
         expect((await plans.entriesForDate('2026-10-13'))[0].id).toBe('e');
