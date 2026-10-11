@@ -52,3 +52,7 @@ Shared conventions so features built in parallel slot together. Keep this file c
 - Media (`src/integrations/media/`, see `doc/media.md`): panel id `media`, keys `media:*` in localStorage, own IndexedDB
   database `flux-media` (does not touch `src/db.js`). Emits `media:segment` `{index, type, playlist}` on workout interval
   changes, with `type` in `warmup|endurance|threshold|vo2|recovery` (pure helpers in `media/intensity.js`).
+  Also exports `toStreams(activity)`. Saved activities get `record.analysis = {input, summary, feedback}` in the IDB `activity` store
+  (feedback from the post-ride "Coach feedback"). Upload retry queue lives in its own IDB database `flux-analysis` (store `uploads`).
+  Events: `analysis:report` / `analysis:report:open` (open the post-ride report for an activity id), `analysis:upload` (queue job changed),
+  `analysis:upload:request` `{id, service}`. Credentials: `analysis:intervals-athlete-id`, `analysis:intervals-api-key`, `analysis:strava-*`.
