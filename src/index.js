@@ -13,6 +13,7 @@ import './integrations/calendar/settings-view.js';
 import './integrations/quiz/index.js';
 import './integrations/media/media.js';
 import './integrations/analysis/index.js';
+import './integrations/ui/index.js';
 
 function startServiceWorker() {
     if('serviceWorker' in navigator) {

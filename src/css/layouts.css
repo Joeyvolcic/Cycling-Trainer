@@ -1,0 +1,803 @@
+/*
+ * Layouts + iPad readiness (additive to flux.css)
+ *
+ * body[data-layout] = classic | banner | split | focus   (set by src/integrations/ui/layout.js)
+ * body[data-focus]  = expanded | collapsed                (focus layout only)
+ * html.is-ios / .is-ipad / .is-touch / .is-standalone / .no-bluetooth (src/integrations/ui/platform.js)
+ *
+ * Mockups of each proposal: doc/ui-proposals/index.html
+ */
+
+/* ------------------------------------------------------------------ */
+/* Touch / iPad readiness (all layouts)                                */
+/* ------------------------------------------------------------------ */
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+body {
+    /* no rubber-band / pull-to-refresh while riding */
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+}
+/* no double-tap zoom, no text selection / callouts on ride controls */
+#home-page,
+.fixed-bottom,
+quick-start,
+#integrations-dock .dock--tabs {
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+button, [role="button"], .control--btn, .menu--btn, .mode, tab-btn,
+connection-switch, z-stack, .number-input--btn, .sound--item {
+    touch-action: manipulation;
+}
+/* iOS zooms the page when focusing inputs smaller than 16px */
+.is-ios input,
+.is-ios select,
+.is-ios textarea {
+    font-size: max(16px, 1em);
+}
+
+/* safe areas (notch / home indicator / status bar with black-translucent) */
+.wrapper {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+}
+.is-standalone .wrapper {
+    padding-top: env(safe-area-inset-top);
+}
+.fixed-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+    height: calc(var(--fb-total-height) + env(safe-area-inset-bottom));
+}
+
+/* touch targets >= 44px */
+.control--btn {
+    padding: 6px;
+    min-width: 44px;
+    min-height: 44px;
+    text-align: center;
+}
+.sound--item.control--btn--icon {
+    box-sizing: content-box;
+    padding: 10px;
+}
+.mode-lock--toggle--icon {
+    box-sizing: content-box;
+    padding: 10px;
+    margin: -10px;
+}
+.data-tile--switch {
+    min-height: 44px;
+}
+.connection-switch {
+    min-height: 44px;
+}
+.connection-icon-switch {
+    min-width: 44px;
+    min-height: 44px;
+}
+
+/* clearer connect affordance in the header */
+.connections-header .connection-switch {
+    border-radius: 999px;
+}
+.connections-header .connection-switch:active {
+    background-color: var(--border-color);
+}
+@media (min-width: 600px) {
+    .connections-header .connection-switch--indicator.off ~ .connection-switch--label::after {
+        content: " · tap to connect";
+        text-transform: none;
+        letter-spacing: 0;
+        color: var(--foreground-color-inactive);
+    }
+    .connections-header .connection-switch--indicator.loading ~ .connection-switch--label::after {
+        content: " · connecting…";
+        text-transform: none;
+        letter-spacing: 0;
+        color: var(--foreground-color-inactive);
+    }
+}
+
+/* layout cycle button (header) */
+.layout-cycle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    color: var(--foreground-color-inactive);
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.layout-cycle:active { background-color: var(--border-color); }
+@media (max-width: 420px) {
+    .layout-cycle--label { display: none; }
+}
+
+/* ------------------------------------------------------------------ */
+/* Compatibility banner + platform guide dialog                         */
+/* ------------------------------------------------------------------ */
+#compatibility--cont {
+    position: relative;
+    font-size: 1.05em;
+    padding: 1em 3.5em 1em 1em;
+}
+#compatibility--cont ol { padding-left: 1.4em; margin: 0.5em 0; }
+#compatibility--cont li { list-style: decimal; margin: 0.3em 0; }
+#compatibility--cont p { margin: 0.4em 0; }
+#compatibility--cont .platform-note { opacity: 0.85; font-size: 0.9em; }
+.compatibility--dismiss {
+    position: absolute;
+    top: 0.25em;
+    right: 0.25em;
+    width: 44px;
+    height: 44px;
+    font-size: 1.6em;
+    line-height: 1;
+    color: inherit;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+.platform-guide {
+    max-width: min(34rem, calc(100vw - 32px));
+    padding: 1.2rem 1.4rem;
+    color: var(--foreground-color);
+    background-color: var(--background-color-2);
+    border: 1px solid var(--yellow);
+    border-radius: 12px;
+    line-height: 1.45;
+}
+.platform-guide::backdrop { background: rgba(0,0,0,0.5); }
+.platform-guide--title { font-size: 1.25em; margin-bottom: 0.6em; }
+.platform-guide ol { padding-left: 1.4em; }
+.platform-guide li { list-style: decimal; margin: 0.4em 0; }
+.platform-guide p { margin: 0.5em 0; }
+.platform-guide a { color: var(--zone-blue); text-decoration: underline; }
+.platform-guide--ok {
+    margin-top: 0.8em;
+    min-height: 44px;
+    min-width: 120px;
+    padding: 0 1.2em;
+    border-radius: 10px;
+    font-weight: bold;
+    color: var(--black);
+    background: var(--yellow);
+    border: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Layout setting (Settings > Options > Layout)                         */
+/* ------------------------------------------------------------------ */
+.option.option--layout {
+    grid-template-columns: 1fr;
+}
+.layout-select {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    padding-bottom: 0.6em;
+    text-transform: none;
+    font-size: 1em;
+}
+@media (max-width: 599px) {
+    .layout-select { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.layout-select--btn {
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    min-height: 96px;
+    padding: 10px 6px;
+    border-radius: 12px;
+    color: var(--foreground-color);
+    background: var(--background-color-2);
+    border: 2px solid transparent;
+    cursor: pointer;
+}
+.layout-select--btn.active {
+    border-color: var(--zone-blue);
+}
+.layout-select--name { font-weight: bold; font-size: 0.95em; }
+.layout-select--hint { font-size: 0.75em; color: var(--foreground-color-inactive); line-height: 1.2; }
+
+/* tiny layout diagrams: a 36x26 "screen" */
+.layout-select--icon {
+    display: block;
+    width: 36px;
+    height: 26px;
+    border-radius: 4px;
+    border: 2px solid currentColor;
+    background-repeat: no-repeat;
+    opacity: 0.9;
+}
+.layout-icon--classic { background: currentColor; background-clip: content-box; padding: 2px; }
+.layout-icon--banner  { background: linear-gradient(currentColor, currentColor) top / 100% 30% no-repeat; }
+.layout-icon--split   { background: linear-gradient(currentColor, currentColor) left / 50% 100% no-repeat; }
+.layout-icon--focus   {
+    background:
+        linear-gradient(currentColor, currentColor) top / 100% 30% no-repeat,
+        linear-gradient(currentColor, currentColor) center 70% / 2px 35% no-repeat;
+}
+
+/* ------------------------------------------------------------------ */
+/* Integrations dock                                                    */
+/* ------------------------------------------------------------------ */
+.integrations-dock {
+    display: none;
+    grid-template-rows: auto minmax(0, 1fr);
+    min-height: 0;
+    min-width: 0;
+    background-color: var(--background-color);
+    border-top: 1px solid var(--border-color);
+}
+/* Classic: the dock sits below the full-screen data view (scroll down) once panels exist */
+body.has-dock-panels .integrations-dock {
+    display: grid;
+    min-height: 60vh;
+}
+.dock--tabs {
+    display: flex;
+    gap: 6px;
+    padding: 6px 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+.dock--tabs::-webkit-scrollbar { display: none; }
+.dock--tabs.single { display: none; }
+.dock--tab {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    color: var(--foreground-color-inactive);
+    background: transparent;
+    font-size: 1rem;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+}
+.dock--tab.active {
+    color: var(--background-color);
+    background: var(--foreground-color);
+    border-color: var(--foreground-color);
+}
+.dock--tab--icon { display: inline-flex; width: 1.2em; justify-content: center; }
+.dock--tab--icon svg { width: 1.2em; height: 1.2em; fill: currentColor; }
+.dock--panels {
+    position: relative;
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+.dock--panel { min-height: 100%; }
+.dock--panel[hidden] { display: none; }
+.dock--empty { display: none; }
+.integrations-dock.empty .dock--empty {
+    display: grid;
+    place-content: center;
+    text-align: center;
+    padding: 1.5em;
+    color: var(--foreground-color-inactive);
+    grid-row: 1 / -1;
+}
+.dock--empty--title {
+    font-size: 1.2em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.4em;
+}
+
+/* ------------------------------------------------------------------ */
+/* Quick start card                                                     */
+/* ------------------------------------------------------------------ */
+quick-start {
+    display: none;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(560px, calc(100% - 24px));
+    max-height: calc(100% - 24px);
+    overflow: auto;
+    z-index: 4;
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) quick-start {
+    top: auto;
+    bottom: calc(var(--fb-h) + 12px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+}
+quick-start.active { display: block; }
+.qs--card {
+    position: relative;
+    display: grid;
+    gap: 10px;
+    padding: 16px;
+    padding-top: 20px;
+    border-radius: 16px;
+    color: var(--foreground-color);
+    background-color: var(--background-color-2);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+}
+.qs--close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 44px;
+    height: 44px;
+    font-size: 1.6rem;
+    line-height: 1;
+    color: var(--foreground-color-inactive);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+.qs--steps {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-right: 28px;
+}
+.qs--connect {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 60px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    background: var(--background-color);
+    cursor: pointer;
+}
+.qs--connect .connection-switch--indicator { margin: 0; flex: 0 0 auto; }
+.qs--connect--text { display: grid; text-align: left; }
+.qs--connect--label { font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+.qs--connect--hint { font-size: 0.85em; color: var(--foreground-color-inactive); }
+.qs--today {
+    min-height: 48px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    border: 1px dashed var(--foreground-color-inactive);
+    color: var(--foreground-color);
+    background: transparent;
+    font-size: 1rem;
+    cursor: pointer;
+}
+.qs--start {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 64px;
+    padding: 0 16px;
+    border-radius: 14px;
+    border: none;
+    color: #0c2a14;
+    background: var(--green);
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+.qs--start--icon { fill: currentColor; flex: 0 0 auto; }
+.qs--start--label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qs--pick {
+    min-height: 44px;
+    border: none;
+    background: transparent;
+    color: var(--foreground-color-inactive);
+    text-decoration: underline;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+/* focus toggle (only visible in the focus layout) */
+.focus-toggle { display: none; }
+
+/* ================================================================== */
+/* Compact layouts: banner (A), split (B), focus (C)                    */
+/* ================================================================== */
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) {
+    --fb-h: 120px;           /* bottom bar: 2 rows on phones */
+    --qs-bottom: var(--fb-h);
+    /* 6 columns: ~5 glyphs per tile must fit in 1/6 of the width */
+    --tile-value-size: clamp(28px, min(5.2vw, 9vh), 96px);
+    --tile-head-size: clamp(11px, 1.6vh, 16px);
+}
+@media (min-width: 600px) {
+    body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) {
+        --fb-h: 68px;        /* single row bar on tablets / desktop */
+    }
+}
+
+/* --- bottom bar: workout name | watch controls | menu --------------- */
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) page-group {
+    padding-right: 0;
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) .fixed-bottom {
+    position: fixed;
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: calc(var(--fb-h) + env(safe-area-inset-bottom));
+    padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    font-size: 1rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: 1fr 1fr;
+    align-items: center;
+    --size--icon--global: 2em;
+    --size--icon--menu--btn: 1.6em;
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #workout-name {
+    display: block;
+    grid-area: 1 / 1 / 2 / 2;
+    font-size: 1rem;
+    margin: 0 12px;
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) .watch {
+    grid-area: 1 / 2 / 2 / 3;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: auto;
+    padding: 0 4px;
+    background: transparent;
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) .control--btn {
+    margin: 0 4px;
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) .menu {
+    grid-area: 2 / 1 / 3 / 3;
+    height: 100%;
+    width: auto;
+    background: transparent;
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) .menu--row {
+    flex-direction: row;
+    justify-content: center;
+    height: 100%;
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) .menu--btn {
+    min-width: 64px;
+    min-height: 44px;
+    padding: 0 12px;
+}
+@media (min-width: 600px) {
+    body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) .fixed-bottom {
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        grid-template-rows: 1fr;
+    }
+    body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) .menu {
+        grid-area: 1 / 3 / 2 / 4;
+        border-left: 1px solid var(--border-color);
+    }
+    body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) .menu--btn {
+        flex-direction: row;
+        gap: 6px;
+    }
+}
+
+/* --- home page = workout area + dock -------------------------------- */
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page {
+    min-height: 0;
+    padding: 0 0 calc(var(--fb-h) + env(safe-area-inset-bottom));
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page.active {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    transition: grid-template-rows 0.3s ease, grid-template-columns 0.3s ease;
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #integrations-dock {
+    display: grid;
+    min-height: 0;
+}
+
+/* workout area */
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page #home-page-wrapper {
+    position: relative;
+    display: grid;
+    height: auto;
+    min-height: 0;
+    overflow: hidden;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 34%);
+    grid-template-rows: 48px minmax(0, 1fr) minmax(56px, 22%);
+    grid-template-areas:
+        "header header"
+        "tiles  tiles"
+        "graph  targets";
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page .connections-header {
+    grid-area: header;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 4px;
+    padding: 0 8px;
+    font-size: 0.95rem;
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page .connections-header .layout-cycle {
+    margin-left: auto;
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page .connection-switch--label {
+    display: block;
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page .connection-switch--indicator {
+    margin: 0 0.6em 0 0;
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page #graph-power {
+    display: none;
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page #graph-workout {
+    grid-area: graph;
+    min-height: 0;
+    max-width: 100%;
+    grid-template-rows: minmax(1.2rem, auto) minmax(0, 1fr);
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page #graph-workout .graph--heading {
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+/* tiles: only the critical six, big numbers */
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page .data-tiles {
+    grid-area: tiles;
+    min-height: 0;
+    font-size: 1rem;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1fr);
+    gap: 0;
+    align-items: center;
+    justify-items: stretch;
+    background-color: var(--background-color-2);
+    --data-tile--value-font-size: var(--tile-value-size);
+    --data-tile--heading-font-size: var(--tile-head-size);
+    --data-tile--heading-margin: 0 auto 0.2em;
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page .data-tiles > .data-tile--small,
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page .data-tiles > .data-tile--switch--group {
+    display: none;
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page .data-tiles > .data-tile {
+    grid-area: auto;
+    min-width: 0;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    overflow: hidden;
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page .data-tile--value {
+    white-space: nowrap;
+}
+/* hh:mm:ss is ~8 glyphs, keep it in one line */
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page #data-tile--elapsed-time .data-tile--value {
+    font-size: calc(var(--tile-value-size) * 0.62);
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page .data-tile--heading {
+    letter-spacing: 1px;
+    color: var(--foreground-color-inactive);
+    white-space: nowrap;
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page #data-tile--power         { order: 1; }
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page #data-tile--target        { order: 2; }
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page #data-tile--interval-time { order: 3; }
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page #data-tile--heart-rate    { order: 4; }
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page #data-tile--cadence       { order: 5; }
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page #data-tile--elapsed-time  { order: 6; }
+
+/* targets: mode selector + number input on one line */
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page #targets {
+    grid-area: targets;
+    align-self: center;
+    padding: 0 8px;
+    min-width: 0;
+    --mode-selector-height: 44px;
+    --mode-selector-margin: 0 auto 4px;
+    --mode-selector-padding: 0 0.4em;
+    --number-input-height: 44px;
+    --inner-max-width: none;
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page .targets--cont {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
+    max-width: none;
+    min-height: 0;
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page .mode-selector {
+    margin: 0;
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page tab-group {
+    width: auto;
+    padding: 0;
+}
+body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page .mode {
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+/* phones (portrait): 3x2 tiles, graph + targets stacked */
+/* portrait (phones and iPad portrait): 3x2 tiles */
+@media (orientation: portrait) {
+    body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) {
+        --tile-value-size: clamp(30px, min(10vw, 8vh), 120px);
+    }
+    body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page .data-tiles {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-rows: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (max-width: 599px) {
+    body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page #home-page-wrapper {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: 44px minmax(0, 1fr) minmax(48px, 14%) auto;
+        grid-template-areas: "header" "tiles" "graph" "targets";
+    }
+    body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page .targets--cont {
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        align-items: center;
+    }
+    body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page .mode-lock--toggle--icon {
+        display: none;
+    }
+}
+/* phones (landscape) — very short screens */
+@media (max-height: 500px) and (orientation: landscape) {
+    body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) {
+        --fb-h: 52px;
+        --tile-value-size: clamp(24px, 9vh, 48px);
+    }
+    body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #home-page #home-page-wrapper {
+        grid-template-rows: 40px minmax(0, 1fr) minmax(40px, 22%);
+    }
+    body:is([data-layout="banner"], [data-layout="split"], [data-layout="focus"]) #workout-name {
+        display: none;
+    }
+}
+
+/* ------------------------------------------------------------------ */
+/* (A) Banner: workout strip on top, dock fills the rest                */
+/* ------------------------------------------------------------------ */
+body[data-layout="banner"] #home-page.active {
+    grid-template-rows: auto minmax(0, 1fr);
+}
+body[data-layout="banner"] #home-page #home-page-wrapper {
+    height: clamp(200px, 36vh, 340px);
+    border-bottom: 1px solid var(--border-color);
+}
+@media (orientation: portrait) {
+    body[data-layout="banner"] #home-page #home-page-wrapper {
+        height: clamp(260px, 40vh, 480px);
+    }
+}
+@media (max-width: 599px) {
+    body[data-layout="banner"] #home-page #home-page-wrapper {
+        height: clamp(260px, 46vh, 420px);
+    }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+    body[data-layout="banner"] #home-page #home-page-wrapper {
+        height: 52vh;
+    }
+}
+
+/* ------------------------------------------------------------------ */
+/* (B) Split: half workout, half dock                                   */
+/* ------------------------------------------------------------------ */
+body[data-layout="split"] #home-page.active {
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+}
+body[data-layout="split"] #home-page #home-page-wrapper {
+    border-bottom: 1px solid var(--border-color);
+    --tile-value-size: clamp(30px, min(10vw, 8vh), 120px);
+}
+body[data-layout="split"] #home-page .data-tiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+@media (orientation: landscape) and (min-width: 900px) {
+    body[data-layout="split"] #home-page.active {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr);
+    }
+    body[data-layout="split"] #home-page #home-page-wrapper {
+        border-bottom: none;
+        border-right: 1px solid var(--border-color);
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: 48px minmax(0, 1fr) minmax(64px, 20%) auto;
+        grid-template-areas: "header" "tiles" "graph" "targets";
+        --tile-value-size: clamp(36px, min(7.5vw, 9vh), 120px);
+    }
+    body[data-layout="split"] #home-page .data-tiles {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: repeat(3, minmax(0, 1fr));
+    }
+    body[data-layout="split"] #home-page .targets--cont {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        align-items: center;
+        padding-bottom: 6px;
+    }
+}
+
+/* ------------------------------------------------------------------ */
+/* (C) Focus: banner while steady, expands near interval changes        */
+/* ------------------------------------------------------------------ */
+body[data-layout="focus"] #home-page.active {
+    grid-template-rows: minmax(0, 36fr) minmax(0, 64fr);
+}
+body[data-layout="focus"][data-focus="expanded"] #home-page.active {
+    grid-template-rows: minmax(0, 66fr) minmax(0, 34fr);
+}
+body[data-layout="focus"] #home-page #home-page-wrapper {
+    border-bottom: 1px solid var(--border-color);
+}
+body[data-layout="focus"][data-focus="expanded"] #home-page #home-page-wrapper {
+    --tile-value-size: clamp(40px, min(10vw, 11vh), 150px);
+    --tile-head-size: clamp(12px, 2vh, 20px);
+}
+body[data-layout="focus"][data-focus="expanded"] #home-page .data-tiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+body[data-layout="focus"][data-focus="expanded"] #home-page #data-tile--interval-time .data-tile--value {
+    color: var(--yellow);
+}
+@media (max-width: 599px) {
+    body[data-layout="focus"] #home-page.active {
+        grid-template-rows: minmax(0, 46fr) minmax(0, 54fr);
+    }
+    body[data-layout="focus"][data-focus="expanded"] #home-page.active {
+        grid-template-rows: minmax(0, 72fr) minmax(0, 28fr);
+    }
+}
+body[data-layout="focus"] .focus-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    left: 8px;
+    bottom: 8px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    color: var(--foreground-color);
+    background: var(--background-color);
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    z-index: 2;
+    cursor: pointer;
+}
+.focus-toggle--collapse { display: none; }
+body[data-focus="expanded"] .focus-toggle--collapse { display: inline; }
+body[data-focus="expanded"] .focus-toggle--expand { display: none; }
+
+/* reduce motion */
+@media (prefers-reduced-motion: reduce) {
+    body #home-page.active { transition: none !important; }
+}
