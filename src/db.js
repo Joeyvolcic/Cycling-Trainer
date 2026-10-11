@@ -53,6 +53,7 @@ let db = {
     resistanceTarget: models.resistanceTarget.default,
     slopeTarget: models.slopeTarget.default,
     cadenceTarget: models.cadenceTarget.default,
+    heartRateTarget: models.heartRateTarget.default,
 
     mode: models.mode.default,
     page: models.page.default,
@@ -228,6 +229,10 @@ xf.reg('ui:mode-set', (mode, db) => {
     if(equals(mode, ControlMode.sim)) {
         xf.dispatch(`ui:slope-target-set`, db.slopeTarget);
     }
+    if(equals(mode, ControlMode.heartRate)) {
+        // power targets are driven by src/integrations/hr-control
+        xf.dispatch(`ui:heart-rate-target-set`, db.heartRateTarget);
+    }
 });
 
 xf.reg('ui:lock-set', (_, db) => {
@@ -277,6 +282,16 @@ xf.reg('ui:slope-target-inc', (_, db) => {
 });
 xf.reg(`ui:slope-target-dec`, (_, db) => {
     db.slopeTarget = models.slopeTarget.dec(db.slopeTarget);
+});
+
+xf.reg('ui:heart-rate-target-set', (heartRateTarget, db) => {
+    db.heartRateTarget = models.heartRateTarget.set(heartRateTarget);
+});
+xf.reg('ui:heart-rate-target-inc', (_, db) => {
+    db.heartRateTarget = models.heartRateTarget.inc(db.heartRateTarget);
+});
+xf.reg(`ui:heart-rate-target-dec`, (_, db) => {
+    db.heartRateTarget = models.heartRateTarget.dec(db.heartRateTarget);
 });
 
 // Profile

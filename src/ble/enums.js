@@ -62,7 +62,14 @@ const ControlMode = {
     sim: 'sim',
     resistance: 'resistance',
     virtualGear: 'virtualGear',
+    // software closed loop on top of ERG, see src/integrations/hr-control
+    heartRate: 'heartRate',
 };
+
+// modes in which the trainer is driven with ERG power targets
+function isPowerTargetMode(mode) {
+    return mode === ControlMode.erg || mode === ControlMode.heartRate;
+}
 
 export {
     Status,
@@ -71,5 +78,6 @@ export {
     Responsibility,
     Priority,
     ControlMode,
+    isPowerTargetMode,
 };
 

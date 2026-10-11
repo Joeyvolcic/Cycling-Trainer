@@ -2,7 +2,7 @@ import { equals, exists, xf, print, } from '../functions.js';
 import { models } from '../models/models.js';
 import Connectable from './connectable.js';
 import { webBle } from './web-ble.js';
-import { Device, Status, ControlMode, } from './enums.js';
+import { Device, Status, ControlMode, isPowerTargetMode, } from './enums.js';
 
 function ReactiveConnectable(args = {}) {
     // config
@@ -133,7 +133,7 @@ function ReactiveConnectable(args = {}) {
 
     function onPowerTarget(powerTarget) {
         if(!connectable.isConnected() ||
-           !equals(mode, ControlMode.erg)) return;
+           !isPowerTargetMode(mode)) return;
         connectable.services.trainer.setPowerTarget({power: powerTarget});
     }
 

@@ -3706,3 +3706,93 @@ and (min-width: 1900px) {
 }
 /* END Media Queries */
 
+
+
+/* Heart Rate Mode (src/integrations/hr-control) */
+#hr-mode-btn {
+    min-width: 44px;
+}
+#mode-selector .mode {
+    padding-left: 0.4em;
+    padding-right: 0.4em;
+}
+/* the targets area has a fixed height, so the status is a floating banner
+   that only appears for warnings (signal lost, max HR) */
+.hr-control--status {
+    display: none;
+}
+.hr-control--status.warning {
+    display: block;
+    position: fixed;
+    top: 3.5em;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    max-width: calc(100% - 32px);
+    padding: 0.6em 1.2em;
+    border-radius: 8px;
+    background-color: var(--red);
+    color: #fff;
+    font-size: 1.1em;
+    font-weight: bold;
+    text-align: center;
+    pointer-events: none;
+}
+.hr-control--status .hr-control--power {
+    margin-right: 0.4em;
+}
+.heart-rate-target.warning {
+    color: var(--red);
+}
+.heart-rate-target {
+    color: var(--gray);
+}
+.hr-target--dec, .hr-target--inc {
+    min-height: 44px;
+    touch-action: manipulation;
+}
+.graph--bar.graph--bar--hr {
+    opacity: 0.6;
+    background-image: repeating-linear-gradient(
+        45deg, transparent 0, transparent 4px,
+        rgba(255, 73, 95, 0.35) 4px, rgba(255, 73, 95, 0.35) 8px);
+}
+#hr-control-settings {
+    max-width: var(--inner-max-width, 600px);
+    margin: 1em auto 2em;
+    padding: 0 16px;
+}
+.hr-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8em;
+    padding: 1em;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+.hr-settings--heading {
+    margin: 0;
+    font-size: 1.1em;
+    text-transform: uppercase;
+}
+.hr-settings--row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1em;
+}
+.hr-settings--input {
+    width: 6em;
+    min-height: 44px;
+    font-size: 1.1em;
+    text-align: center;
+    background-color: var(--input-color);
+    color: var(--black);
+    border: 1px solid var(--border-color);
+}
+.hr-settings--save {
+    min-height: 44px;
+    align-self: flex-end;
+    padding: 0 1.5em;
+}
+/* END Heart Rate Mode */
