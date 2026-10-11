@@ -175,6 +175,7 @@ class AnalysisReport extends HTMLElement {
                 </div>
                 <div class="an-sub">${esc(date)}${this.fresh ? ' · saved on this device' : ''}</div>
                 ${this.renderSummary(r.summary)}
+                ${this.renderQuiz(r.quiz)}
                 ${this.renderUpload(r)}
                 ${this.renderGarmin()}
                 ${this.renderCoach(r)}
@@ -208,6 +209,18 @@ class AnalysisReport extends HTMLElement {
             ${s.zones.power ? `<div class="an-section"><h3>Time in power zones</h3>${zoneBars(s.zones.power)}</div>` : ''}
             ${s.zones.heartRate ? `<div class="an-section"><h3>Time in HR zones</h3>${zoneBars(s.zones.heartRate)}</div>` : ''}
         `;
+    }
+    renderQuiz(q) {
+        if(!q || !(q.reviewed > 0)) return '';
+        const pct = Math.round(100 * (q.correct ?? 0) / q.reviewed);
+        return `
+            <div class="an-section">
+                <h3>Quiz</h3>
+                <div class="an-tiles">
+                    ${tile('Cards reviewed', v(q.reviewed))}
+                    ${tile('Recalled', `${v(q.correct)} (${pct}%)`)}
+                </div>
+            </div>`;
     }
     renderCompliance(c) {
         const rows = c.intervals.map(i => `

@@ -7,6 +7,9 @@
 //   'analysis:upload'  UploadJob      a queue job changed (without the blob)
 //   'analysis:changed' {id}           stored analysis for an activity changed (e.g. feedback)
 //
+// Events consumed (besides the app's activity:add / workout:started):
+//   'quiz:ride-summary' {reviewed, correct, start, end}  stored as record.analysis.quiz
+//
 
 import { xf } from '../../functions.js';
 import { idb } from '../../storage/idb.js';
@@ -113,13 +116,64 @@ function summarize(input) {
     return summarizeActivity(input, settings.athlete());
 }
 
-async function persistAnalysis(id, patch) {
+// serialize read-modify-write of activity records (quiz summary vs. save can race)
+let persistChain = Promise.resolve();
+
+function persistAnalysis(id, patch) {
+    const run = () => persistAnalysisNow(id, patch);
+    persistChain = persistChain.then(run, run);
+    return persistChain;
+}
+
+async function persistAnalysisNow(id, patch) {
     const record = await idb.get(ACTIVITY_STORE, id);
     if(!record || !record.summary) return null;
     record.analysis = Object.assign({}, record.analysis ?? {}, patch);
     await idb.put(ACTIVITY_STORE, record);
     xf.dispatch('analysis:changed', {id});
     return record;
+}
+
+//
+// Quiz ride summary -> record.analysis.quiz
+//
+// The quiz dispatches 'quiz:ride-summary' on db:watchStatus 'stopped', which can
+// arrive before or after activity:add depending on listener order, so keep the
+// latest summary briefly and attach it from whichever side comes second.
+//
+const QUIZ_MATCH_WINDOW = 2 * 60 * 1000;
+let pendingQuiz = null;  // {summary, at}
+let lastSaved = null;    // {id, at}
+
+function quizFromSummary(x) {
+    if(!x || typeof x !== 'object') return null;
+    const reviewed = Number(x.reviewed) || 0;
+    if(reviewed <= 0) return null;
+    return {
+        reviewed,
+        correct: Number(x.correct) || 0,
+        start: x.start ?? null,
+        end: x.end ?? null,
+    };
+}
+
+function takePendingQuiz(now = Date.now()) {
+    const p = pendingQuiz;
+    pendingQuiz = null;
+    if(!p || now - p.at > QUIZ_MATCH_WINDOW) return null;
+    return p.summary;
+}
+
+function onQuizSummary(x, now = Date.now()) {
+    const quiz = quizFromSummary(x);
+    if(!quiz) return Promise.resolve(null);
+    if(lastSaved && Math.abs(now - lastSaved.at) <= QUIZ_MATCH_WINDOW) {
+        const id = lastSaved.id;
+        lastSaved = null;
+        return persistAnalysis(id, {quiz});
+    }
+    pendingQuiz = {summary: quiz, at: now};
+    return Promise.resolve(null);
 }
 
 async function onActivitySaved(summary, db) {
@@ -131,11 +185,14 @@ async function onActivitySaved(summary, db) {
         return;
     }
     const result = summarize(input);
+    const quiz = takePendingQuiz();
+    lastSaved = quiz ? null : {id: summary.id, at: Date.now()};
     await persistAnalysis(summary.id, {
         version: 1,
         input,
         summary: result,
         feedback: null,
+        quiz,
         createdAt: Date.now(),
     });
 
@@ -169,6 +226,7 @@ async function getReport(id) {
         summary,
         input: record.analysis?.input ?? null,
         feedback: record.analysis?.feedback ?? null,
+        quiz: record.analysis?.quiz ?? null,
         uploads: (await queue.forActivity(id)).map(publicJob),
     };
 }
@@ -377,6 +435,9 @@ function start() {
         queue.process();
     });
     xf.sub('analysis:settings', () => queue.process());
+    xf.sub('quiz:ride-summary', (x) => {
+        onQuizSummary(x).catch(e => console.error(':analysis :quiz', e));
+    });
     xf.sub('analysis:upload:request', (req) => {
         onUploadRequest(req).catch(e => console.error(':analysis :upload', e));
     });
@@ -392,6 +453,8 @@ function start() {
 
 export {
     start,
+    onActivitySaved,
+    onQuizSummary,
     queue,
     uploaders,
     getReport,
