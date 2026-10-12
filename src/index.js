@@ -33,9 +33,22 @@ function startServiceWorker() {
     };
 }
 
+// Ask the browser not to evict ride history and plans under storage pressure
+async function persistStorage() {
+    try {
+        if(!navigator.storage?.persist) return;
+        if(await navigator.storage.persisted()) return;
+        const granted = await navigator.storage.persist();
+        console.log(`storage: persistent ${granted ? 'granted' : 'denied'}`);
+    } catch(e) {
+        console.warn('storage: persist failed', e);
+    }
+}
+
 function start() {
     console.log('start app.');
 
+    persistStorage();
     // startServiceWorker(); // stable version only
     xf.dispatch('app:start');
 }

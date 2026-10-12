@@ -1,7 +1,7 @@
 //
 // Persistent upload retry queue. Jobs live in IndexedDB (see store.js) together with a
 // copy of the FIT blob, so an upload survives being offline, page reloads and the
-// activity list's own capacity-based eviction.
+// the rider deleting the ride from the activity list.
 //
 
 const BASE_BACKOFF = 30 * 1000;            // 30s

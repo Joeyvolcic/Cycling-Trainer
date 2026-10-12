@@ -575,7 +575,6 @@ class Activity extends Model {
     name = 'activity';
     postInit(args) {
         this.api = args.api;
-        this.capacity = 7;
     }
     defaultValue() { return []; }
     createFromCurrent(db) {
@@ -601,11 +600,8 @@ class Activity extends Model {
         xf.dispatch('activity:add', summary);
     }
     add(activity, activityList) {
+        // keep every ride; rides are only removed when the rider deletes one
         activityList.unshift(activity);
-        if(activityList.length > this.capacity) {
-            const summary = activityList.pop();
-            idb.remove('activity', summary.id);
-        }
         return activityList;
     }
     remove(id) {
