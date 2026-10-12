@@ -1,7 +1,7 @@
 import { equals, exists, xf, print, } from '../functions.js';
 import { models } from '../models/models.js';
 import Connectable from './connectable.js';
-import { webBle } from './web-ble.js';
+import { webBle, uuids } from './web-ble.js';
 import { Device, Status, ControlMode, isPowerTargetMode, } from './enums.js';
 
 function ReactiveConnectable(args = {}) {
@@ -35,7 +35,28 @@ function ReactiveConnectable(args = {}) {
         xf.dispatch(`${getIdentifier()}:connecting`);
     }
 
+    // With "Show all Bluetooth devices" any device can be picked for any slot;
+    // reject one that can't serve this slot (e.g. a watch picked as trainer).
+    function servesSlot() {
+        const has = uuid => connectable.hasService(uuid);
+        if(equals(deviceType, Device.heartRateMonitor)) {
+            return has(uuids.heartRate);
+        }
+        if(equals(deviceType, Device.controllable)) {
+            return has(uuids.fitnessMachine) || has(uuids.fec) ||
+                   has(uuids.wahooFitnessMachine) || has(uuids.cyclingPower);
+        }
+        return true;
+    }
+
     function onConnected() {
+        if(!servesSlot()) {
+            const name = connectable.getName();
+            print.log(`ble: ${name} can't be used as ${deviceType}, disconnecting`);
+            connectable.disconnect();
+            xf.dispatch('ble:wrong-device', {slot: deviceType, name});
+            return;
+        }
         xf.dispatch(`${getIdentifier()}:connected`);
         xf.dispatch(`${getIdentifier()}:name`, connectable.getName());
     }

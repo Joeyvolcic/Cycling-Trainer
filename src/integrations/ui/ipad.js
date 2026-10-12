@@ -72,6 +72,27 @@ function start() {
     guardConnections();
     preventRideZoom();
     xf.sub('ui:platform:guide', () => showGuide());
+    xf.sub('ble:wrong-device', ({slot, name}) => showGuide(wrongDeviceGuide(slot, name)));
+}
+
+function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+}
+
+function wrongDeviceGuide(slot, name) {
+    const device = `<b>${escapeHtml(name || 'That device')}</b>`;
+    if(slot === 'heartRateMonitor') {
+        return {
+            title: 'That isn\'t a heart rate monitor',
+            html: `<p>${device} doesn't send heart rate, so it was disconnected.</p>
+                   <p>Tap <b>Heart Rate</b> again and pick your watch or strap. On a Garmin watch, start <b>Broadcast Heart Rate</b> first.</p>`,
+        };
+    }
+    return {
+        title: 'That isn\'t a trainer',
+        html: `<p>${device} doesn't send power or accept trainer control, so it was disconnected.</p>
+               <p>Tap <b>Trainer</b> again and pick your trainer, for example <b>KICKR CORE</b>. Connect your watch with the <b>Heart Rate</b> button instead.</p>`,
+    };
 }
 
 export { start, showGuide };
