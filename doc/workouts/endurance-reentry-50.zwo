@@ -1,0 +1,20 @@
+<workout_file>
+    <author>Claude for Joey</author>
+    <name>Endurance Re-entry 50</name>
+    <category>Endurance</category>
+    <subcategory>Z2</subcategory>
+    <description>Easy aerobic ride for the day after a ramp test, built on FTP 212 W (75% of a 282 W final ramp minute). Mostly 140 W with short high-cadence spin-ups. Stay conversational and keep heart rate under about 150 bpm; lower the target if heart rate drifts above that.</description>
+    <sportType>bike</sportType>
+    <tags></tags>
+    <workout>
+        <Warmup Duration="600" PowerLow="0.47" PowerHigh="0.66"/>
+        <SteadyState Duration="540" Power="0.66"/>
+        <SteadyState Duration="30" Power="0.66" Cadence="105"/>
+        <SteadyState Duration="540" Power="0.68"/>
+        <SteadyState Duration="30" Power="0.66" Cadence="105"/>
+        <SteadyState Duration="540" Power="0.70"/>
+        <SteadyState Duration="30" Power="0.66" Cadence="105"/>
+        <SteadyState Duration="270" Power="0.66"/>
+        <Cooldown Duration="390" PowerLow="0.62" PowerHigh="0.45"/>
+    </workout>
+</workout_file>
