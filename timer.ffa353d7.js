@@ -1,0 +1,1 @@
+var interval;function onStart(){interval=setInterval(function(){self.postMessage("tick")},1e3)}function onStop(){clearInterval(interval)}self.addEventListener("message",function(t){switch(t.data){case"start":onStart();break;case"stop":case"pause":onStop()}},!1);
