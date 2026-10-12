@@ -1,0 +1,16 @@
+<workout_file>
+    <author>Claude for Joey</author>
+    <name>Endurance + Tempo Touches 60</name>
+    <category>Endurance</category>
+    <subcategory>Z2/Z3</subcategory>
+    <description>Second ride back, built on FTP 212 W. Endurance with three 6-minute tempo blocks at 170 W. Tempo should feel steady and controlled, not hard; you should still be able to speak in short sentences. If heart rate passes about 165 bpm in a tempo block, or your legs feel flat in the warm-up, ride the tempo blocks at 150 W instead.</description>
+    <sportType>bike</sportType>
+    <tags></tags>
+    <workout>
+        <Warmup Duration="600" PowerLow="0.47" PowerHigh="0.66"/>
+        <SteadyState Duration="600" Power="0.68"/>
+        <IntervalsT Repeat="3" OnDuration="360" OnPower="0.80" OffDuration="240" OffPower="0.66"/>
+        <SteadyState Duration="300" Power="0.66"/>
+        <Cooldown Duration="300" PowerLow="0.60" PowerHigh="0.45"/>
+    </workout>
+</workout_file>
