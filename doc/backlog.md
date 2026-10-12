@@ -18,6 +18,7 @@ feature work left behind.
 - [ ] **Trends:** FTP over time, weekly hours/TSS, fitness/fatigue (CTL/ATL) chart.
 
 ## Training and AI
+- [ ] **Heart-rate guardrails on power workouts:** keep the workout's power structure, but give each interval a target HR zone (from its intensity, or set in the workout). If heart rate stays above the zone, scale that interval's power down; if it stays below, scale it up, within limits (e.g. ±15%). Unlike HR mode, which replaces power with one HR target, this keeps intervals, ramps and rests intact. Ignore the first 30–60 s of each interval (HR lag), show the current adjustment on screen with an override, and record it in the ride report. Can reuse the smoothing and step limits in `src/integrations/hr-control/controller.js`.
 - [ ] **Plan my week from the Plans page** (today it's only in the AI panel and Settings).
 - [ ] **Scheduler respects rides already in the plan** when choosing times.
 - [ ] **Keep plan-change proposals** across reloads; clear the old proposal when feedback is requested again.
