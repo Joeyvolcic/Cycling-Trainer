@@ -352,7 +352,9 @@ function Connectable(args = {}) {
     //
     // Void -> GATTDevice?
     async function request() {
-        const device = await navigator.bluetooth.requestDevice(filter);
+        const device = await navigator.bluetooth.requestDevice(
+            webBle.showAllDevices() ? webBle.filters.everything() : filter
+        );
         return device;
     }
 

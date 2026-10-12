@@ -13,6 +13,11 @@ const services = {
     coreTemp:            '00002100-5b1e-4347-b07c-97b514dae121',
 };
 
+// Device Information Service, read after connecting (src/ble/dis/dis.js)
+const deviceInformation = '0000180a-0000-1000-8000-00805f9b34fb';
+
+const showAllDevicesKey = 'ble:show-all-devices';
+
 const characteristics = {
     // Fitness Machine
     indoorBikeData:                '00002ad2-0000-1000-8000-00805f9b34fb',
@@ -129,6 +134,16 @@ function Filters() {
         return {acceptAllDevices: true};
     }
 
+    // Lists every nearby device, for trainers whose advertisement lacks their
+    // service UUIDs (e.g. old Wahoo KICKR firmware) so service filters miss them.
+    // optionalServices must name every service the app may use after connecting.
+    function everything() {
+        return {
+            acceptAllDevices: true,
+            optionalServices: [...Object.values(services), deviceInformation],
+        };
+    }
+
     async function generic(args = {}) {
         const devices = await navigator.bluetooth.getDevices();
 
@@ -158,6 +173,7 @@ function Filters() {
     }
 
     return Object.freeze({
+        everything,
         controllable,
         speedCadenceSensor,
         heartRateMonitor,
@@ -187,6 +203,20 @@ function WebBLE() {
         return false;
     }
 
+    function showAllDevices() {
+        try {
+            return localStorage.getItem(showAllDevicesKey) === 'true';
+        } catch(e) {
+            return false;
+        }
+    }
+
+    function setShowAllDevices(on) {
+        try {
+            localStorage.setItem(showAllDevicesKey, on ? 'true' : 'false');
+        } catch(e) {}
+    }
+
     function uuidToName(uuid) {
         return Object.entries(uuids).find(kv => kv[1] === uuid)[0];
     }
@@ -194,6 +224,8 @@ function WebBLE() {
     return Object.freeze({
         filters,
         isAvailable,
+        showAllDevices,
+        setShowAllDevices,
         uuidToName,
     });
 }
