@@ -257,6 +257,16 @@ function Connectable(args = {}) {
         return _primaryServices[uuid];
     }
 
+    // Void -> Promise<Bool>
+    async function hasWahooControlPoint() {
+        try {
+            await getService(uuids.cyclingPower).getCharacteristic(uuids.wahooTrainer);
+            return true;
+        } catch(e) {
+            return false;
+        }
+    }
+
     //
     // methods
     //
@@ -456,8 +466,11 @@ function Connectable(args = {}) {
     async function defaultSetup() {
         const hasFTMS = hasService(uuids.fitnessMachine);
         const hasFEC = hasService(uuids.fec);
-        const hasWCPS = hasService(uuids.wahooFitnessMachine);
         const hasPower = hasService(uuids.cyclingPower);
+        // Older Wahoo trainers (KICKR v1/v2) have no Wahoo FTMS-like service;
+        // their control point is a characteristic inside Cycling Power.
+        const hasWCPS = hasService(uuids.wahooFitnessMachine) ||
+                        (hasPower && await hasWahooControlPoint());
         const hasCadence = hasService(uuids.speedCadence);
         const hasHeartRate = hasService(uuids.heartRate);
         const hasBattery = hasService(uuids.battery);
