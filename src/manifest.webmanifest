@@ -2,10 +2,10 @@
     "name": "Auuki",
     "short_name": "Auuki",
     "description": "Cycling Structured Training",
-    "start_url": "/",
+    "start_url": "./",
     "display": "standalone",
     "orientation": "any",
-    "scope": "/",
+    "scope": "./",
     "theme_color": "#35363a",
     "background_color": "#28272D",
     "icons": [
