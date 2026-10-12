@@ -85,7 +85,8 @@ function wrongDeviceGuide(slot, name) {
         return {
             title: 'That isn\'t a heart rate monitor',
             html: `<p>${device} doesn't send heart rate, so it was disconnected.</p>
-                   <p>Tap <b>Heart Rate</b> again and pick your watch or strap. On a Garmin watch, start <b>Broadcast Heart Rate</b> first.</p>`,
+                   <p>On a Garmin watch, start <b>Broadcast Heart Rate</b> and wait until it shows your heart rate. Without the broadcast the watch connects but sends no heart rate.</p>
+                   <p>Then turn off <b>Settings → Bluetooth → Show all Bluetooth devices</b> (a connected trainer stays connected) and tap <b>Heart Rate</b> again. Only devices that are broadcasting heart rate will be listed.</p>`,
         };
     }
     return {
