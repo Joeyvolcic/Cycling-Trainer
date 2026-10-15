@@ -1,0 +1,16 @@
+<workout_file>
+    <author>Claude for Joey</author>
+    <name>Easy 140 bpm 60</name>
+    <category>Recovery</category>
+    <subcategory>Z2 low</subcategory>
+    <description>Easy hour the day after a hard mountain bike ride, built on FTP 212 W. Ride by heart rate: settle around 140 bpm. The power here is a starting point; if heart rate sits above about 145 bpm, lower the target 5-10 W, and if it stays under 135 bpm after 20 minutes, raise it 5 W. Keep cadence relaxed, 85-95 rpm.</description>
+    <sportType>bike</sportType>
+    <tags></tags>
+    <workout>
+        <Warmup Duration="600" PowerLow="0.45" PowerHigh="0.59"/>
+        <SteadyState Duration="900" Power="0.59"/>
+        <SteadyState Duration="900" Power="0.61"/>
+        <SteadyState Duration="900" Power="0.61"/>
+        <Cooldown Duration="300" PowerLow="0.57" PowerHigh="0.45"/>
+    </workout>
+</workout_file>
